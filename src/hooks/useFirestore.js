@@ -21,7 +21,10 @@ function useFirestore() {
             /** dangerous */
             delete video.fileVideo;
             delete video.fileThumbnail;
-            video.views = 0;
+            video.views = {
+              refresh: 0,
+              count: 0,
+            }
             /** dangerous */
 
             firestore

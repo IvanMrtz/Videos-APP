@@ -74,7 +74,7 @@ function PreviewVideo(props) {
             ) : (
               <div className="Video-Views">
                 <Icon icon="carbon:view" />
-                <p className="grey small">{views}</p>
+                <p className="grey small">{views.count}</p>
               </div>
             )}
           </div>

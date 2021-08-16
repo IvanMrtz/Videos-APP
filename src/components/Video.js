@@ -153,7 +153,14 @@ export default function (props) {
   }, []);
 
   useEffect(() => {
-    update({ views: views + 1, idVideo });
+    const now = Date.now();
+
+    if (
+      now - views.refresh >= 600000 ||
+      now - views.refresh === now
+    ) {
+      update({ views: { refresh: now, count: views.count + 1 }, idVideo });
+    }
   }, []);
 
   return (
