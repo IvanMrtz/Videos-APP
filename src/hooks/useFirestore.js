@@ -10,16 +10,19 @@ function useFirestore() {
 
   // : if request.resource.contentType.matches('video/mp4') || request.resource.contentType.matches('image/jpg');
 
-  function add(video, done, error) {
+  function add(video, done = ()=>{}, error = ()=>{}) {
     readStorage(["videos", currentUser.uid, video.idVideo])
       .put(video.fileVideo)
       .then(() => {
         readStorage(["thumbnails", currentUser.uid, video.idVideo])
           .put(video.fileThumbnail)
           .then(() => {
+
+            /** dangerous */
             delete video.fileVideo;
             delete video.fileThumbnail;
-            console.log(video);
+            video.views = 0;
+            /** dangerous */
 
             firestore
               .collection("users")
@@ -107,7 +110,7 @@ function useFirestore() {
     });
   }
 
-  function update(video, done, error) {
+  function update(video, done = ()=>{}, error = ()=>{}) {
     let toUpdateFirestore = {};
     let toUpdateStorage = {};
 

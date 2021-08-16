@@ -1,5 +1,5 @@
 import useFirestore from "../hooks/useFirestore";
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useMemo } from "react";
 import { useState } from "react";
 import Forms from "../utilities/Forms/Forms";
 import Form from "./Form";
@@ -13,13 +13,15 @@ import Component from "../utilities/MultipleComponents/Component";
 import Friends from "./Friends";
 import "../styles/Main.css";
 import userContext from "../context/user-context";
+import Popup from "./Popup";
 
-const VideosContext = React.createContext();
-export { VideosContext };
+const videosContext = React.createContext();
+const sectionContext = React.createContext();
+export { videosContext, sectionContext };
 
 export function AllVideos(props) {
   const { children } = props;
-  const { setVideos } = useContext(VideosContext);
+  const { setVideos } = useContext(videosContext);
   const [changes, setChanges] = useState(false);
 
   const { readAllVideos } = useFirestore();
@@ -82,7 +84,7 @@ export function AllVideos(props) {
 
 export function MyVideos(props) {
   const { children } = props;
-  const { setVideos } = useContext(VideosContext);
+  const { setVideos } = useContext(videosContext);
   const { read } = useFirestore();
 
   useEffect(() => {
@@ -139,7 +141,10 @@ export function Main() {
           },
         },
         external: function () {
-          return { idVideo: String(Date.now()), userUID: currentUser.uid };
+          return {
+            idVideo: String(Date.now()),
+            userUID: currentUser.uid,
+          };
         },
       },
     },
@@ -172,67 +177,76 @@ export function Main() {
       },
     },
   ]);
+  const sectionProvider = useMemo(() => ({ section, setSection }), [section]);
+  const videosProvider = useMemo(() => ({ videos, setVideos }), [videos]);
 
   return (
     <>
-      <VideosContext.Provider value={{ videos, setVideos }}>
-        {sideMenu ? <SideMenu setSideMenu={setSideMenu} /> : null}
-
-        <div className="Main-Container">
-          <TopBar setSideMenu={setSideMenu} />
-
-          <Forms
-            formState={[stateFormVideo, setStateFormVideo]}
-            structure={(data, inputs) => {
-              return (
-                <FormVideo
-                  setStateFormVideo={setStateFormVideo}
-                  allData={data}
-                  inputs={inputs}
-                />
-              );
-            }}
-            inputs={inputs}
-          />
-          <div className="Main-Principal">
-            <InfoPanels
-              section={section}
-              setStateFormVideo={setStateFormVideo}
+      <sectionContext.Provider value={sectionProvider}>
+        <videosContext.Provider value={videosProvider}>
+          {!currentUser.emailVerified ? (
+            <Popup
+              message="Atention: You do not have verified email. Please check it out for a better experience."
+              background="var(--color-grey-background)"
+              color="var(--color-grey)"
             />
+          ) : null}
 
-            <MultipleComponents section={section}>
-              <Component
-                render={() => {
-                  return (
-                    <MyVideos>
-                      <VideoContainer
-                        setStateFormVideo={setStateFormVideo}
-                        setInputs={setInputs}
-                      />
-                    </MyVideos>
-                  );
-                }}
-                section="MyVideos"
-              />
-              <Component
-                render={() => {
-                  return (
-                    <AllVideos>
-                      <VideoContainer
-                        setStateFormVideo={setStateFormVideo}
-                        setInputs={setInputs}
-                      />
-                    </AllVideos>
-                  );
-                }}
-                section="AllVideos"
-              />
-            </MultipleComponents>
+          {sideMenu ? <SideMenu setSideMenu={setSideMenu} /> : null}
 
-            <Friends />
+          <div className="Main-Container">
+            <TopBar setSideMenu={setSideMenu} />
+
+            <Forms
+              formState={[stateFormVideo, setStateFormVideo]}
+              structure={(data, inputs) => {
+                return (
+                  <FormVideo
+                    setStateFormVideo={setStateFormVideo}
+                    allData={data}
+                    inputs={inputs}
+                  />
+                );
+              }}
+              inputs={inputs}
+            />
+            <div className="Main-Principal">
+              <InfoPanels setStateFormVideo={setStateFormVideo} />
+
+              <MultipleComponents section={section}>
+                <Component
+                  render={() => {
+                    return (
+                      <MyVideos>
+                        <VideoContainer
+                          setStateFormVideo={setStateFormVideo}
+                          setInputs={setInputs}
+                        />
+                      </MyVideos>
+                    );
+                  }}
+                  section="MyVideos"
+                />
+                <Component
+                  render={() => {
+                    return (
+                      <AllVideos>
+                        <VideoContainer
+                          setStateFormVideo={setStateFormVideo}
+                          setInputs={setInputs}
+                        />
+                      </AllVideos>
+                    );
+                  }}
+                  section="AllVideos"
+                />
+              </MultipleComponents>
+
+              <Friends />
+            </div>
           </div>
-        </div>
-      </VideosContext.Provider>
+        </videosContext.Provider>
+      </sectionContext.Provider>
     </>
   );
 }

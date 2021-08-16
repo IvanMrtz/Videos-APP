@@ -10,6 +10,7 @@ import useMessage from "../hooks/useMessage";
 import Scroll from "./Scroll";
 import useUser from "../hooks/useUser";
 import { withRouter } from "react-router";
+import useFirestore from "../hooks/useFirestore";
 
 const loadingContainerVariants = {
   start: {
@@ -137,16 +138,22 @@ export function VideoChat({ idVideo, userUID }) {
 // see: https://overreacted.io/a-complete-guide-to-useeffect/
 
 export default function (props) {
-  const { setVideoPopup, video, userUID, idVideo, description, title } = props;
+  const { setVideoPopup, video, userUID, videoProps } = props;
+  const { title, description, views, idVideo } = videoProps;
   const [src, setSrc] = useState();
   const ownerData = useUser(userUID);
   const { displayName, photoURL } = ownerData.consume;
   const { getDownloadURL } = useStorage();
+  const { update } = useFirestore();
 
   useEffect(() => {
     getDownloadURL(["videos", userUID, idVideo]).then((url) => {
       setSrc(url);
     });
+  }, []);
+
+  useEffect(() => {
+    update({ views: views + 1, idVideo });
   }, []);
 
   return (

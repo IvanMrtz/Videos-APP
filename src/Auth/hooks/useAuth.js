@@ -31,24 +31,16 @@ function useAuth() {
     auth
       .createUserWithEmailAndPassword(data.email, data.password)
       .then((newUser) => {
-          const displayName = newUser.user.email.split("@")[0];
-          const email = newUser.user.email;
-          const photoURL = "https://picsum.photos/40";
-
-          firebase.auth().currentUser
-          .updateProfile({
-            displayName,
-            email,
-            photoURL,
-          })
+        auth.currentUser
+          .sendEmailVerification()
           .then(() => {
             firestore
               .collection("users")
               .doc(newUser.user.uid)
               .set({
-                displayName,
-                email,
-                photoURL,
+                displayName: newUser.user.email.split("@")[0],
+                email: newUser.user.email,
+                photoURL: "https://picsum.photos/40",
                 isOnline: false,
                 verified: false,
                 friends: 0,
@@ -57,10 +49,10 @@ function useAuth() {
               .then(() => {
                 done();
               });
+          })
+          .catch(({ message }) => {
+            error(message);
           });
-      })
-      .catch(({ message }) => {
-        error(message);
       });
   }
 

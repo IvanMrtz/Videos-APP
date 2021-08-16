@@ -13,5 +13,13 @@
 .Video-Actions{
     margin-top: 15px;
     display: flex;
+    align-items: center;
     justify-content: space-between;
+}
+
+.Video-Views {
+    display: flex;
+    width: 50px;
+    justify-content: space-evenly;
+    align-items: center;
 }

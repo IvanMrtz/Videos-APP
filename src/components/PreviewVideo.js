@@ -1,13 +1,12 @@
 import useFirestore from "../hooks/useFirestore";
 import { Icon } from "@iconify/react";
-import delete28Filled from "@iconify-icons/fluent/delete-28-filled";
-import editIcon from "@iconify-icons/akar-icons/edit";
 import { memo } from "react";
 import "../styles/PreviewVideo.css";
 import Thumbnail from "./Thumbnail";
 import { useState, useContext } from "react";
 import Video from "./Video";
 import userContext from "../context/user-context";
+import { sectionContext } from "./Main";
 
 function PreviewVideo(props) {
   const { remove } = useFirestore("users");
@@ -17,6 +16,7 @@ function PreviewVideo(props) {
     category,
     idVideo,
     description,
+    views,
     userUID,
     setStateFormVideo,
     setInputs,
@@ -24,14 +24,13 @@ function PreviewVideo(props) {
   const [data, setData] = useState({ video: null, thumbnail: null });
   const [videoPopup, setVideoPopup] = useState();
   const { currentUser } = useContext(userContext); // ocultar botones de edición, para quienes no sean los dueños del video
+  const { section } = useContext(sectionContext);
 
   return (
     <div className="Preview-Video" style={{ border: `1px solid ${color}` }}>
       {videoPopup ? (
         <Video
-          idVideo={idVideo}
-          title = {title}
-          description={description}
+          videoProps={{ title, description, idVideo, views }}
           userUID={userUID}
           video={data.video}
           setVideoPopup={setVideoPopup}
@@ -49,26 +48,35 @@ function PreviewVideo(props) {
 
         <div className="Video-Actions">
           <div className="left">
-            <Icon onClick={() => remove(props)} icon={delete28Filled} />
-            <Icon
-              onClick={() => {
-                setInputs((inputs) => {
-                  return inputs.map((input) => {
-                    if (input.name === "Edit") {
-                      input.data.external = {
-                        idVideo,
-                        setData,
-                      };
-                    }
+            {section === "MyVideos" ? (
+              <>
+                <Icon onClick={() => remove(props)} icon="carbon:delete" />
+                <Icon
+                  onClick={() => {
+                    setInputs((inputs) => {
+                      return inputs.map((input) => {
+                        if (input.name === "Edit") {
+                          input.data.external = {
+                            idVideo,
+                            setData,
+                          };
+                        }
 
-                    return input;
-                  });
-                });
+                        return input;
+                      });
+                    });
 
-                setStateFormVideo("Edit");
-              }}
-              icon={editIcon}
-            />
+                    setStateFormVideo("Edit");
+                  }}
+                  icon="akar-icons:edit"
+                />
+              </>
+            ) : (
+              <div className="Video-Views">
+                <Icon icon="carbon:view" />
+                <p className="grey small">{views}</p>
+              </div>
+            )}
           </div>
           <div className="right">
             <h3 className="grey small">{category}</h3>

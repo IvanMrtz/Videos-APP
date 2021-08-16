@@ -3,11 +3,11 @@ import "../styles/Search.css";
 import { Icon } from "@iconify/react";
 import bxSearch from "@iconify-icons/bx/bx-search";
 import "bootstrap/dist/css/bootstrap.css";
-import { VideosContext } from "./Main";
+import { videosContext } from "./Main";
 
-export default function (props) {
+export default function () {
   const [search, setSearch] = useState("");
-  const { videos, setVideos } = useContext(VideosContext);
+  const { videos, setVideos } = useContext(videosContext);
 
   useEffect(() => {
     if (videos) {

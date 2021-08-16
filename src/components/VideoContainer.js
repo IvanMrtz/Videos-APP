@@ -2,10 +2,10 @@ import "../styles/VideoContainer.css";
 import { memo, useContext } from "react";
 import PreviewVideo from "./PreviewVideo";
 import Scroll from "./Scroll";
-import { VideosContext } from "./Main";
+import { videosContext } from "./Main";
 
 export default memo(function ({ setStateFormVideo, setInputs }) {
-  const { videos } = useContext(VideosContext);
+  const { videos } = useContext(videosContext);
 
   if (typeof videos === "undefined" || videos === null) {
     return <h3 className="waiting linked">Wait...</h3>;
@@ -31,12 +31,8 @@ export default memo(function ({ setStateFormVideo, setInputs }) {
               key={video.idVideo}
               setInputs={setInputs}
               setStateFormVideo={setStateFormVideo}
-              color={video.color}
-              title={video.title}
-              category={video.category}
-              description={video.description}
-              idVideo={video.idVideo}
-              userUID={video.userUID}
+              views={3}
+              {...video}
             />
           );
         } else {

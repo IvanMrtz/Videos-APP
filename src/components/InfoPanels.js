@@ -1,7 +1,11 @@
 import InfoUserPanel from "./InfoUserPanel";
 import InfoChallengesPanel from "./InfoChallengesPanel";
+import { useContext } from "react";
+import { sectionContext } from "./Main";
 
-export default function ({ setStateFormVideo, section }) {
+export default function ({ setStateFormVideo }) {
+  const { section } = useContext(sectionContext);
+
   return (
     <div
       style={{ height: "100%" }}
@@ -12,7 +16,7 @@ export default function ({ setStateFormVideo, section }) {
         style={{ height: "220px", justifyContent: "inherit" }}
       >
         <h2 className="grey">
-          {section == "MyNotes" ? "Your videos" : "Comunity videos"}
+          {section == "MyVideos" ? "Your videos" : "Comunity videos"}
         </h2>
         <InfoUserPanel />
       </div>
