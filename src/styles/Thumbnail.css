@@ -1,0 +1,11 @@
+.Thumbnail-Container{
+    background:'var(--color-grey-background)';
+    max-height: 100%;
+    max-width: 100%;
+    display: flex;
+}
+
+.Thumbnail-Container img{
+    border-top-left-radius: 14px;
+    border-top-right-radius: 14px;
+}

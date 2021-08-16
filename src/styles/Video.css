@@ -1,0 +1,117 @@
+.Video-Top {
+  display: flex;
+  width: 100%;
+  justify-content: space-around;
+  height: 400px;
+}
+
+.Video-Profile {
+  display: flex;
+  align-items: center;
+}
+
+.Video-Bottom {
+  width: 100%;
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+}
+
+.Video-Chat-Container {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: space-evenly;
+  border-radius: 25px;
+  width: 300px;
+  background: var(--color-grey-background);
+}
+
+.Video-Comments {
+  height:260px;
+}
+
+.Video-Chat-Title {
+  color: var(--color-grey);
+  font-size: 25px;
+}
+
+.Video-Comment-Container {
+  display: flex;
+  width: 100%;
+  align-items: flex-start;
+  justify-content: space-evenly;
+  margin-bottom: 20px;
+}
+
+.Video-Comment-Content{
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 200px;
+}
+
+.Video-Comment-Name {
+  color: var(--color-grey);
+}
+
+.Video-Comment-Text {
+  font-size: 13px;
+  text-align: left;
+  color: var(--color-grey-lower);
+}
+
+.Video-Chat-Bottom {
+  background: var(--color-grey-background-lower);
+  width: 91%;
+  height: 40px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.Video-Chat-Input {
+  background: none;
+  border:none;
+  outline: none;
+  color: var(--color-grey);
+}
+
+.Video-Chat-Send {
+  color: white;
+  border-radius: 50%;
+  width: 25px;
+  height: 25px;
+  background: var(--color-linked);
+}
+
+.Video-Presentation {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  width: 580px;
+  height: 100%;
+}
+
+.Loading-Container {
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  justify-content: space-around;
+}
+
+.Loading-Circle {
+  display: block;
+  width: 0.5rem;
+  height: 0.5rem;
+  background-color: pink;
+  border-radius: 0.25rem;
+}
+
+video {
+  width: 700px;
+  height: 100%;
+  border-radius: 25px;
+  outline: none;
+}

@@ -1,0 +1,50 @@
+.Profile {
+  height: 100%;
+}
+
+.Profile-Cover {
+  height: 40%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  position: relative;
+}
+
+.Profile-Container {
+  display: flex;
+  justify-content: space-around;
+  position: absolute;
+  top: 260px;
+  width: 100%;
+}
+
+.Profile-Info {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  background: var(--color-grey-background);
+  width: 30%;
+  height: 500px;
+  border-radius: 20px;
+  align-items: center;
+  position: relative;
+}
+
+.Profile-Details {
+    width: 100%;
+}
+
+.Profile-Principal-Info {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+
+.Profile-Auth {
+  display: flex;
+  flex-direction: column;
+  width: 50%;
+  height: 500px;
+  background: var(--color-grey-background);
+  border-radius: 20px;
+}

@@ -1,0 +1,15 @@
+.Scroll-Container-1{
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+}
+
+.Scroll-Container-2{
+    position: absolute;
+    top: 0px;
+    bottom: 0px;
+    left: 0px;
+    right: -6px;
+    overflow: auto;
+    transition: .5s;
+}

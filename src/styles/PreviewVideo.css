@@ -1,0 +1,17 @@
+.Preview-Video{
+    display: flex;
+    width: 250px;
+    cursor: pointer;
+    flex-direction: column;
+    border-radius: 13px;
+    margin-inline: 12px;
+    margin-bottom: 25px;
+    background: #151a21;
+    text-align: center;
+}
+
+.Video-Actions{
+    margin-top: 15px;
+    display: flex;
+    justify-content: space-between;
+}

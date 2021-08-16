@@ -1,0 +1,8 @@
+.Top-Nav-Bar{
+    display: flex;
+    height: 45px;
+    margin-bottom: 30px;
+    margin-top: 30px;
+    width: 100%;
+    align-items: center;
+}

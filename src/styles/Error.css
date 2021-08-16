@@ -1,0 +1,15 @@
+.Error{
+    position: absolute;
+    display: flex;
+    bottom: -40px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.Error svg{
+    font-size: 30px;
+}
+
+.Error-Message{
+    color:gainsboro;
+}
