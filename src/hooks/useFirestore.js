@@ -10,21 +10,25 @@ function useFirestore() {
 
   // : if request.resource.contentType.matches('video/mp4') || request.resource.contentType.matches('image/jpg');
 
-  function add(video, done = ()=>{}, error = ()=>{}) {
+  function add(video, done = () => {}, error = () => {}) {
     readStorage(["videos", currentUser.uid, video.idVideo])
       .put(video.fileVideo)
       .then(() => {
         readStorage(["thumbnails", currentUser.uid, video.idVideo])
           .put(video.fileThumbnail)
           .then(() => {
-
             /** dangerous */
             delete video.fileVideo;
             delete video.fileThumbnail;
             video.views = {
-              refresh: 0,
+              viewers: [
+                {
+                  refresh: 0,
+                  userUID: currentUser.uid,
+                },
+              ],
               count: 0,
-            }
+            };
             /** dangerous */
 
             firestore
@@ -113,12 +117,14 @@ function useFirestore() {
     });
   }
 
-  function update(video, done = ()=>{}, error = ()=>{}) {
+  function update(video, done = () => {}, error = () => {}) {
+    const { userUID = currentUser.uid } = video;
+    /** dangerous */
+    delete video.userUID;
+    /** dangerous */
+
     let toUpdateFirestore = {};
     let toUpdateStorage = {};
-
-    console.log(toUpdateStorage);
-    console.log(toUpdateFirestore);
 
     Object.entries(video).map(([key, val]) => {
       if (!val || typeof val === "function") {
@@ -160,7 +166,7 @@ function useFirestore() {
           new Promise((res, rej) => {
             const uploadTask = readStorage([
               "videos",
-              currentUser.uid,
+              userUID,
               video.idVideo,
             ]).put(toUpdateStorage["fileVideo"]);
 
@@ -173,7 +179,7 @@ function useFirestore() {
           new Promise((res, rej) => {
             const uploadTask = readStorage([
               "thumbnails",
-              currentUser.uid,
+              userUID,
               video.idVideo,
             ]).put(toUpdateStorage["fileThumbnail"]);
 
@@ -199,13 +205,14 @@ function useFirestore() {
         // Greater than one, because not needs
         firestore
           .collection("users")
-          .doc(currentUser.uid)
+          .doc(userUID)
           .collection("videos")
           .doc(video.idVideo)
           .update(toUpdateFirestore);
       }
     }
-
+    console.log(toUpdateStorage);
+    console.log(toUpdateFirestore);
     done();
   }
 

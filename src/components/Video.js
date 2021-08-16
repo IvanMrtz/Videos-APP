@@ -139,6 +139,7 @@ export function VideoChat({ idVideo, userUID }) {
 
 export default function (props) {
   const { setVideoPopup, video, userUID, videoProps } = props;
+  const { currentUser } = useContext(userContext);
   const { title, description, views, idVideo } = videoProps;
   const [src, setSrc] = useState();
   const ownerData = useUser(userUID);
@@ -154,12 +155,44 @@ export default function (props) {
 
   useEffect(() => {
     const now = Date.now();
-
-    if (
-      now - views.refresh >= 600000 ||
-      now - views.refresh === now
-    ) {
-      update({ views: { refresh: now, count: views.count + 1 }, idVideo });
+    const actualViewer = views.viewers.find(({ userUID }) => {
+      return userUID === currentUser.uid;
+    });
+    
+    if (currentUser.uid) {
+      if (!actualViewer) {
+        update({
+          views: {
+            viewers: views.viewers.concat([
+              {
+                userUID: currentUser.uid,
+                refresh: now,
+              },
+            ]),
+            count: views.count + 1,
+          },
+          idVideo,
+          userUID,
+        });
+      } else {
+        if (
+          now - actualViewer.refresh >= 600000 ||
+          now - actualViewer.refresh === now
+        ) {
+          update({
+            views: {
+              viewers: views.viewers.map((viewer) => {
+                return viewer.userUID === currentUser.uid
+                  ? Object.assign(viewer, { refresh: now })
+                  : viewer;
+              }),
+              count: views.count + 1,
+            },
+            idVideo,
+            userUID,
+          });
+        }
+      }
     }
   }, []);
 

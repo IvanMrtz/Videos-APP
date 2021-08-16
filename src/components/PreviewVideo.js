@@ -23,7 +23,6 @@ function PreviewVideo(props) {
   } = props;
   const [data, setData] = useState({ video: null, thumbnail: null });
   const [videoPopup, setVideoPopup] = useState();
-  const { currentUser } = useContext(userContext); // ocultar botones de edición, para quienes no sean los dueños del video
   const { section } = useContext(sectionContext);
 
   return (
