@@ -13,7 +13,7 @@ function App() {
       <UserProvider>
         <Switch>
           <PrivateRoute path="/" exact component={Main} />
-          <Route path="/profile/:uid" component={Profile}/>
+          <Route path="/profile/:uid" component={Profile} />
           <Route path="/auth" exact component={MainAuth} />
           <Route path="/" component={PageNotFound} />
         </Switch>

@@ -1,46 +1,84 @@
-.Auth-Container{
+.Auth-Container {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  top: 0;
+}
+.Auth-Container > * {
+  margin-inline: 50px;
+}
+
+.Form-Container button {
+  width: 80%;
+  border-radius: 15px;
+  background: none;
+  border: 1px solid var(--color-general);
+  color: white;
+  margin-top: 10px;
+  height: 30px;
+  cursor: pointer;
+  transition: all 0.7s;
+}
+
+.Form-Container button:hover {
+  background-color: var(--color-general);
+  border: 1px solid white;
+}
+
+.Form-Img-Container img {
+  width: 100%;
+}
+
+.User-Welcome {
+  width: 120px;
+  margin-bottom: 20px;
+}
+
+.Input-Auth {
+  display: flex;
+  align-items: center;
+  border-radius: 8px;
+  width: 80%;
+  height: 50px;
+  border: 1px solid var(--color-grey-lower);
+}
+.Input-Auth input {
+  color: white;
+  background: none;
+  border: none;
+  outline: none;
+  width: 100%;
+  text-indent: 8px;
+}
+
+.Form-Auth {
+  width: 100%;
+  position: relative;
+  display: flex;
+  justify-content: space-around;
+  flex-direction: column;
+  align-items: center;
+}
+
+.Form-Auth-Bottom {
     display: flex;
     align-items: center;
-    height: calc(100% - 80px);
-    top: 0;
-}
-.Auth-Container > *{
-    margin-inline: 50px;
+    flex-direction: column;
+    justify-content: space-evenly;
+    height: 100px;
 }
 
-.Form-Container button{
-    width: 80%;
-    border-radius: 15px;
-    background: none;
-    border: 1px solid var(--color-general);
-    color:white;
-    margin-top: 10px;
-    height: 30px;
-    cursor: pointer;
-    transition: all 0.7s;
-}
-
-.Form-Container button:hover{
-    background-color: var(--color-general);
-    border: 1px solid white;
-}
-
-.Form-Img-Container img{
-    width: 100%;
-}
-
-.User-Welcome{
-    width: 20%;
-    height: 20%;
-    margin-bottom: 20px;
-}
-
-.Form-Auth{
-    width: 100%;
-    position: relative;
+.Inputs-Auth-Container {
     display: flex;
-    justify-content: center;
-    height: 500px;
+    width: 100%;
     flex-direction: column;
     align-items: center;
+    justify-content:space-evenly;
+    height: 80%;
+    margin-top: 5%;
+    margin-bottom: 5%;
+}
+
+.Inputs-Auth-Container > * {
+    margin-top: 30px;
 }

@@ -14,7 +14,7 @@ import useAuth from "../Auth/hooks/useAuth";
 
 export default withRouter(function ({ history, setSideMenu }) {
   const { currentUser, userData } = useContext(userContext);
-  const { photoURL, displayName } = userData.consume;
+  const { photoURL, displayName } = userData;
   const { logout } = useAuth();
 
   return (
@@ -60,7 +60,7 @@ export default withRouter(function ({ history, setSideMenu }) {
             <div
               className="Side-Menu-Item item-bottom"
               id="side-menu-logout"
-              onClick={() => logout()}
+              onClick={() => logout(currentUser)}
             >
               <label>Logout</label>
             </div>

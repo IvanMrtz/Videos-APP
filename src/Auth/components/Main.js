@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Media from "../../hooks/useMediaQuery";
+import Media from "../../components/MediaQuery";
 import Forms from "../../utilities/Forms/Forms";
 import { withRouter } from "react-router";
 import useAuth from "../hooks/useAuth";
@@ -19,7 +19,9 @@ export default withRouter(function (props) {
       autoCatchErrorByEmptyFields: true,
       autoCatchErrorByRules: false,
       removeError: 3000,
-      onSubmit: login,
+      submits: {
+        default: { submit: login },
+      },
       data: {
         initial: {
           email: "",
@@ -33,13 +35,19 @@ export default withRouter(function (props) {
       closeInSubmit: false,
       autoCatchErrorByEmptyFields: true,
       autoCatchErrorByRules: true,
-      onSubmit: register,
       removeError: 3000,
+      submits: {
+        default: { submit: register },
+      },
       data: {
         initial: {
           email: {
             field: "",
             rules: [{ maxCharacters: 320 }],
+          },
+          displayName: {
+            field: "",
+            rules: [{ minCharacters: 2, maxCharacters: 10 }],
           },
           password: {
             field: "",
@@ -57,7 +65,7 @@ export default withRouter(function (props) {
 
   return (
     <Media
-      query={"(min-width: 700px)"}
+      query="(min-width: 700px)"
       render={(match) => (
         <div className="Auth-Container">
           {match ? (

@@ -5,10 +5,3 @@
     margin-left: 3%;
     margin-right: 3%;
 }
-
-.Main-Principal {
-    height: 520px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}

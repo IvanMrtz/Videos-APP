@@ -1,20 +1,33 @@
 import { auth, firestore } from "../../firebase/config";
-import firebase from "firebase/app";
+import useUser from "../../hooks/useUser";
 
 function useAuth() {
+  const { provide } = useUser();
+
   function login(data, done, error) {
     auth
       .signInWithEmailAndPassword(data.email, data.password)
       .then(() => {
+        provide({ isOnline: true, userUID: auth.currentUser.uid });
         done();
       })
-      .catch(({ message }) => {
-        error(message);
-      });
+      .catch(error);
+  }
+  
+  function updatePassword(password, _, error) {
+    console.log(password)
+    auth.currentUser.updatePassword(password).catch(error);
+  }
+
+  function updateEmail(email, _, error) {
+    auth.currentUser.updateEmail(email).catch(error);
   }
 
   function logout() {
-    auth.signOut();
+    const userUID = auth.currentUser.uid;
+    auth.signOut().then(()=>{
+      provide({ isOnline: false, userUID });
+    });
   }
 
   function register(data, done, error) {
@@ -38,25 +51,23 @@ function useAuth() {
               .collection("users")
               .doc(newUser.user.uid)
               .set({
-                displayName: newUser.user.email.split("@")[0],
+                displayName: data.displayName,
                 email: newUser.user.email,
                 photoURL: "https://picsum.photos/40",
                 isOnline: false,
-                verified: false,
                 friends: 0,
                 peopleHelped: 0,
+                age: data.age,
               })
               .then(() => {
                 done();
               });
           })
-          .catch(({ message }) => {
-            error(message);
-          });
+          .catch(error);
       });
   }
 
-  return { login, logout, register };
+  return { login, logout, register, updatePassword, updateEmail };
 }
 
 export default useAuth;

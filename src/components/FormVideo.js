@@ -5,7 +5,12 @@ export default function (props) {
   const target = allData.target;
 
   return (
-    <Background centered={true} setClose={setStateFormVideo} color="rgba(7, 8, 15, 0.801)">
+    <Background
+      scrollable={true}
+      centered={true}
+      setClose={setStateFormVideo}
+      color="rgba(7, 8, 15, 0.801)"
+    >
       <div className="Form">
         <h3 className="Form-Title linked">
           {allData.name} your explanation 🚀

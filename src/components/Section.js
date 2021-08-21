@@ -27,11 +27,27 @@ export default function () {
     <select
       className="default-button"
       value={option}
-      style={{ outline: "none", border: "none" }}
+      style={{
+        background: "var(--color-grey-lower)",
+      }}
       onChange={(optionSelected) => setOption(optionSelected.target.value)}
     >
-      <option value="date">Date</option>
-      <option value="name">Name</option>
+      <option
+        style={{
+          background: "grey",
+        }}
+        value="date"
+      >
+        Date
+      </option>
+      <option
+        style={{
+          background: "grey",
+        }}
+        value="name"
+      >
+        Name
+      </option>
     </select>
   );
 }

@@ -10,10 +10,9 @@ export default function (props) {
 
   return (
     <>
-      <div className="Form-Input-Div">
+      <div className="Input-Auth">
         <input
           autoComplete="off"
-          className="Form-Input"
           value={inputs.email}
           name="email"
           onChange={(ev) =>
@@ -24,10 +23,22 @@ export default function (props) {
           placeholder="Email"
         />
       </div>
-      <div className="Form-Input-Div">
+      <div className="Input-Auth">
         <input
           autoComplete="off"
-          className="Form-Input"
+          value={inputs.displayName}
+          name="displayName"
+          onChange={(ev) =>
+            setInputs((state) => {
+              return { ...state, [ev.target.name]: ev.target.value };
+            })
+          }
+          placeholder="Display Name"
+        />
+      </div>
+      <div className="Input-Auth">
+        <input
+          autoComplete="off"
           value={inputs.password}
           type="password"
           name="password"
@@ -39,10 +50,9 @@ export default function (props) {
           placeholder="Password"
         />
       </div>
-      <div className="Form-Input-Div">
+      <div className="Input-Auth">
         <input
           autoComplete="off"
-          className="Form-Input"
           value={inputs.repeatPassword}
           type="password"
           name="repeatPassword"
@@ -51,13 +61,12 @@ export default function (props) {
               return { ...state, [ev.target.name]: ev.target.value };
             })
           }
-          placeholder="Repeat password"
+          placeholder="Repeat Password"
         />
       </div>
-      <div className="Form-Input-Div">
+      <div className="Input-Auth">
         <input
           autoComplete="off"
-          className="Form-Input"
           value={inputs.age}
           name="age"
           type="number"

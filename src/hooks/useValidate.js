@@ -4,10 +4,22 @@ export default function () {
 
     for (const key of keys) {
       if (!inputs[key]) {
-        return { message: "Please fill the field", from: key };
+        return { message: "Please fill the field", code: key };
       }
     }
     return false;
+  }
+
+  function evaluateEmptyFields(inputs) {
+    const newInputs = {};
+
+    Object.entries(inputs).forEach(([key, val]) => {
+      if(val) {
+        newInputs[key] = val;
+      }
+    })
+
+    return newInputs;
   }
 
   function validateRules(inputs, rules) {
@@ -21,7 +33,7 @@ export default function () {
     function maxCharactersRule(characters, amount, key) {
       return characters.length < amount
         ? false
-        : { message: `Please put less than ${amount} characters`, from: key };
+        : { message: `Please put less than ${amount} characters`, code: key };
     }
 
     function minCharactersRule(characters, amount, key) {
@@ -29,11 +41,10 @@ export default function () {
         ? false
         : {
             message: `Please put greater than ${amount} characters`,
-            from: key,
+            code: key,
           };
     }
-    console.log(rules)
-    console.log(keys)
+
     for (const key of keys) {
       if (rules[key]) {
         for (const rule of rules[key]) {
@@ -52,5 +63,5 @@ export default function () {
     }
   }
 
-  return { validateEmptyFields, validateRules };
+  return { validateEmptyFields, validateRules, evaluateEmptyFields };
 }

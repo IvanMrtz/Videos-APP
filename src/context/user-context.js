@@ -1,32 +1,35 @@
-import React from 'react';
-import {useEffect, useState} from 'react';
-import { auth } from '../firebase/config';
-import { withRouter } from 'react-router';
-import useUser from '../hooks/useUser';
+import React from "react";
+import { useEffect, useState } from "react";
+import { auth } from "../firebase/config";
+import { withRouter } from "react-router";
+import useUser from "../hooks/useUser";
 
 const userContext = React.createContext();
 
 export default userContext;
 
-export const UserProvider = withRouter(({children, history}) =>{
-    const [currentUser, setCurrentUser] = useState(null);
-    const userData = useUser(currentUser);
-    
-    useEffect(() => {
-        auth.onAuthStateChanged(user=>{
-            if(user){
-                setCurrentUser(user);
-                history.push('/');
-            }else{
-                setCurrentUser(user);
-                history.push('/auth');
-            }
-        });
-    }, [])
+export const UserProvider = withRouter(({ children, history }) => {
+  const [currentUser, setCurrentUser] = useState(null);
+  const { consume: userData } = useUser(currentUser);
 
-    return (
-        <userContext.Provider value = {{currentUser, userData}}>
-            {children}
-        </userContext.Provider>
-    )
-})
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      console.log(user);
+      if (user) {
+        setCurrentUser(user);
+        history.push("/");
+      } else {
+        setCurrentUser(user);
+        history.push("/auth");
+      }
+    });
+
+    return unsubscribe;
+  }, []);
+
+  return (
+    <userContext.Provider value={{ currentUser, userData }}>
+      {children}
+    </userContext.Provider>
+  );
+});

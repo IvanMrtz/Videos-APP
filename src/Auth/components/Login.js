@@ -9,12 +9,12 @@ export default function(props){
     }, [inputs]);
 
     return <>
-        <div className = "Form-Input-Div">
+        <div className = "Input-Auth">
             <input autoComplete = "off" value = {inputs.email} name = "email" onChange = {ev => setInputs(state => {
                 return {...state, [ev.target.name]: ev.target.value}
             })} placeholder = "Email"/>
         </div>
-        <div className = "Form-Input-Div">
+        <div className = "Input-Auth">
             <input autoComplete = "off" className = "Form-Input" value = {inputs.password} name = "password" onChange = {ev => setInputs(state => {
                 return {...state, [ev.target.name]: ev.target.value}
             })} type = "password" placeholder = "Password"/>

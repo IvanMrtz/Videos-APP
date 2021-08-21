@@ -17,18 +17,25 @@ export default function (user) {
         .collection("users")
         .doc(user)
         .onSnapshot({
-          next: function(snapshot) {
-            setData(snapshot.data())
-          }
-        })
+          next: function (snapshot) {
+            setData(snapshot.data());
+          },
+        });
     }
 
     return unsubSnapshot;
   }, [user]);
 
   useEffect(() => {
-    if (data) {
-      firestore.collection("users").doc(user).update(updatedData);
+    if (updatedData && (user || updatedData.userUID)) {
+      const ref = firestore
+        .collection("users")
+        .doc(user || updatedData.userUID);
+
+      if (updatedData.userUID) {
+        delete updatedData.userUID;
+      }
+      ref.update(updatedData);
     }
   }, [updatedData]);
 
@@ -40,7 +47,7 @@ export default function (user) {
       peopleHelped: null,
       email: null,
       isOnline: null,
-      verified: null,
+      age: null,
     },
     provide: setUpdatedData,
   };

@@ -1,14 +1,15 @@
-.Videos-Container{
-    display:flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
+.Videos-Container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  width: 100%;
+  justify-content: center;
+  height: inherit;
 }
 
 .Empty-Container {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-evenly;
-    height: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  height: 400px;
 }

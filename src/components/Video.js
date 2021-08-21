@@ -11,6 +11,7 @@ import Scroll from "./Scroll";
 import useUser from "../hooks/useUser";
 import { withRouter } from "react-router";
 import useFirestore from "../hooks/useFirestore";
+import Media from "./MediaQuery";
 
 const loadingContainerVariants = {
   start: {
@@ -67,7 +68,7 @@ export const Message = withRouter(function (props) {
 
 export function VideoChat({ idVideo, userUID }) {
   const { userData, currentUser } = useContext(userContext);
-  const { photoURL, displayName } = userData.consume;
+  const { photoURL, displayName } = userData;
   const { messages, writeMessage } = useMessage({ idVideo, userUID });
   const inputMessage = useRef(null);
   const sendRef = useRef(null);
@@ -113,18 +114,20 @@ export function VideoChat({ idVideo, userUID }) {
         <label
           ref={sendRef}
           onClick={() => {
-            const data = {
-              photo: photoURL,
-              name: displayName,
-              message: inputMessage.current.value,
-              userUID: currentUser.uid,
-            };
-            console.log(data);
-            writeMessage(data).then(() => {
-              if (autoScroll.current)
-                autoScroll.current.scrollIntoView({ behavior: "smooth" });
-            });
-            inputMessage.current.value = "";
+            if (currentUser.emailVerified) {
+              const data = {
+                photo: photoURL,
+                name: displayName,
+                message: inputMessage.current.value,
+                userUID: currentUser.uid,
+              };
+
+              writeMessage(data).then(() => {
+                if (autoScroll.current)
+                  autoScroll.current.scrollIntoView({ behavior: "smooth" });
+              });
+              inputMessage.current.value = "";
+            }
           }}
           className="Video-Chat-Send"
         >
@@ -158,92 +161,150 @@ export default function (props) {
     const actualViewer = views.viewers.find(({ userUID }) => {
       return userUID === currentUser.uid;
     });
-    
+
     if (currentUser.uid) {
-      if (!actualViewer) {
-        update({
-          views: {
-            viewers: views.viewers.concat([
-              {
-                userUID: currentUser.uid,
-                refresh: now,
-              },
-            ]),
-            count: views.count + 1,
-          },
-          idVideo,
-          userUID,
-        });
-      } else {
-        if (
-          now - actualViewer.refresh >= 600000 ||
-          now - actualViewer.refresh === now
-        ) {
+      if (currentUser.emailVerified) {
+        if (!actualViewer) {
           update({
             views: {
-              viewers: views.viewers.map((viewer) => {
-                return viewer.userUID === currentUser.uid
-                  ? Object.assign(viewer, { refresh: now })
-                  : viewer;
-              }),
+              viewers: views.viewers.concat([
+                {
+                  userUID: currentUser.uid,
+                  refresh: now,
+                },
+              ]),
               count: views.count + 1,
             },
             idVideo,
             userUID,
           });
+        } else {
+          if (
+            now - actualViewer.refresh >= 600000 ||
+            now - actualViewer.refresh === now
+          ) {
+            update({
+              views: {
+                viewers: views.viewers.map((viewer) => {
+                  return viewer.userUID === currentUser.uid
+                    ? Object.assign(viewer, { refresh: now })
+                    : viewer;
+                }),
+                count: views.count + 1,
+              },
+              idVideo,
+              userUID,
+            });
+          }
         }
       }
     }
   }, []);
 
   return (
-    <Background setClose={setVideoPopup} color="rgba(8, 8, 15, .95)">
-      <div className="Video-Container">
-        <div className="Video-Top">
-          <div className="Video">
-            {video || src ? (
-              <video controls={true} autoPlay="" name="media">
-                <source src={video || src} type="video/mp4" />
-              </video>
-            ) : (
-              <motion.div
-                className="Loading-Container"
-                variants={loadingContainerVariants}
-                initial="start"
-                animate="end"
-              >
-                <motion.span
-                  className="Loading-Circle"
-                  variants={loadingCircleVariants}
-                  transition={loadingCircleTransition}
-                />
-                <motion.span
-                  className="Loading-Circle"
-                  variants={loadingCircleVariants}
-                  transition={loadingCircleTransition}
-                />
-                <motion.span
-                  className="Loading-Circle"
-                  variants={loadingCircleVariants}
-                  transition={loadingCircleTransition}
-                />
-              </motion.div>
-            )}
-          </div>
-          <VideoChat idVideo={idVideo} userUID={userUID} />
-        </div>
-        <div className="Video-Bottom">
-          <div className="Video-Presentation">
-            <div className="Video-Profile">
-              <ProfileImage width="10%" image={photoURL} alt="Profile Image" />
-              <p className="linked">{displayName}</p>
+    <Media
+      query="(min-width: 380px)"
+      render={(match) => {
+        return (
+          <Background setClose={setVideoPopup} color="rgba(8, 8, 15, .95)">
+            <div className="Video-Container">
+              <div className="Video-Top">
+                <div className="Video">
+                  {video || src ? (
+                    <>
+                      <div>
+                        <video
+                          className="Video-Element"
+                          controls={true}
+                          autoPlay=""
+                          name="media"
+                        >
+                          <source src={video || src} type="video/mp4" />
+                        </video>
+                      </div>
+                      <div className="Video-Bottom">
+                        <div className="Video-Owner">
+                          <div className="Video-Profile">
+                            <ProfileImage
+                              width="30%"
+                              image={photoURL}
+                              alt="Profile Image"
+                            />
+                            <p className="linked">{displayName}</p>
+                          </div>
+                          <div className="Video-Follows">
+                            <button
+                              style={{ background: "var(--color-grey-lower)" }}
+                              id="Icon-Button-Animation"
+                              className="Icon-Button default-button default-button-animation"
+                            >
+                              <Icon icon="bx:bxs-share" />
+                              {match ? "Share" : ""}
+                            </button>
+                            <button
+                              id="Icon-Button-Animation-2"
+                              className="Icon-Button default-button default-button-animation"
+                            >
+                              <Icon icon="topcoat:like" />
+                              53
+                            </button>
+                          </div>
+                        </div>
+                        <div className="Video-Presentation">
+                          <h2 className="grey Video-Title">{title}</h2>
+                          <p className="grey-lower Video-Description">
+                            {description}
+                          </p>
+
+                          {/* <div className="Video-Presentation-Horizontal"> */}
+                          {/* <div className="Video-Info"> */}
+                          {/* <p className="grey-lower">{description}</p> */}
+                          {/* </div> */}
+                          {/* <div className="Video-Details">
+                              <div className="Video-Detail">
+                                <Icon icon="carbon:view" />
+                                <p>{views.count} views</p>
+                              </div>
+                              <div className="Video-Detail">
+                                <Icon icon="topcoat:like" />
+                                <p>542 likes</p>
+                              </div>
+                            </div> */}
+                          {/* </div> */}
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <motion.div
+                      className="Loading-Container"
+                      variants={loadingContainerVariants}
+                      initial="start"
+                      animate="end"
+                    >
+                      <motion.span
+                        className="Loading-Circle"
+                        variants={loadingCircleVariants}
+                        transition={loadingCircleTransition}
+                      />
+                      <motion.span
+                        className="Loading-Circle"
+                        variants={loadingCircleVariants}
+                        transition={loadingCircleTransition}
+                      />
+                      <motion.span
+                        className="Loading-Circle"
+                        variants={loadingCircleVariants}
+                        transition={loadingCircleTransition}
+                      />
+                    </motion.div>
+                  )}
+                </div>
+                <VideoChat idVideo={idVideo} userUID={userUID} />
+              </div>
             </div>
-            <h2 className="grey">{title}</h2>
-            <p className="grey-lower">{description}</p>
-          </div>
-          <div className="Video-Follows"></div>
-        </div>
-      </div>
-    </Background>
+          </Background>
+        );
+      }}
+    />
   );
 }

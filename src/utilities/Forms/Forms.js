@@ -4,7 +4,7 @@ import { useState, useEffect, memo } from "react";
 
 export default memo(function Forms(props) {
   const { submit, error, setError } = useForm();
-  const [inputs, setInputs] = useState({ inputs: null });
+  const [inputs, setInputs] = useState({ inputs: null, setInputs: null });
   const [target, setTarget] = useState();
 
   const formState = props.formState[0];
@@ -19,33 +19,29 @@ export default memo(function Forms(props) {
       .map((Form) => {
         const Component = Form.Component;
 
-        if (formState === Form.name) {
-          let rulesOfFields = {};
-          Object.entries(Form.data.initial).forEach(([key, val]) => {
-            if (
-              typeof val === "object" &&
-              val !== null
-            ) {
-              rulesOfFields[key] = val.rules;
-              Form.data.initial[key] = val.field;
-            }
-          });
+        Object.entries(Form.data.initial).forEach(([key, val]) => {
+          if (typeof val === "object" && val !== null) {
+            Form.data.initial[key] = val.rules;
+          }
+        });
 
+        if (formState === Form.name) {
           return (
             <Component
               statex={{ inputs: Form.data.initial, setInputs }}
-              onSubmit={(data) =>
-                submit({
-                  toSubmit: Form.onSubmit,
+              onSubmit={(data) =>{
+                return submit({
                   inputsData: data,
-                  setFormState,
-                  rulesOfFields,
+                  setFormState: setFormState,
+                  clearFieldsOnSubmit: Form.clearFieldsOnSubmit,
+                  rulesOfFields: Form.data.initial,
                   autoCatchErrorByEmptyFields: Form.autoCatchErrorByEmptyFields,
                   autoCatchErrorByRules: Form.autoCatchErrorByRules,
                   removeError: Form.removeError,
                   closeInSubmit: Form.closeInSubmit,
+                  submits: Form.submits,
                 })
-              }
+              }}
               name={Form.name}
               externalData={Form.data.external}
               key={Form.name}

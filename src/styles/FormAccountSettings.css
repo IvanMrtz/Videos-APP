@@ -1,0 +1,28 @@
+.Input-Account-Settings {
+  display: flex;
+  align-items: center;
+  border-radius: 8px;
+  width: 100%;
+  height: 13%;
+  border: 1px solid var(--color-grey-lower);
+}
+.Input-Account-Settings input {
+  color: white;
+  background: none;
+  border: none;
+  outline: none;
+  width: 100%;
+  text-indent: 8px;
+}
+.Inputs-Account-Settings {
+  display: flex;
+  height: 70%;
+  flex-direction: column;
+  justify-content: space-evenly;
+}
+
+.Form-Account-Settings {
+  display: flex;
+  justify-content: space-around;
+  height: 100%;
+}

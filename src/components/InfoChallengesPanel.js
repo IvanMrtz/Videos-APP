@@ -2,6 +2,7 @@ import "../styles/InfoChallengesPanel.css";
 import { useRef, useEffect, useState } from "react";
 import AddNote from "./AddNote";
 import Section from "./Section";
+import Media from "./MediaQuery";
 
 export default function ({ setStateFormVideo }) {
   const [option, setOption] = useState("Name");
@@ -40,29 +41,64 @@ export default function ({ setStateFormVideo }) {
   }, []);
 
   return (
-    <div
-      className="d-flex flex-column justify-content-around"
-      style={{
-        width: "300px",
-        height: "250px",
-        borderRadius: "10px",
-        position: "relative",
-        background: "var(--color-grey-background)",
-      }}
-    >
-      <div className="d-flex justify-content-around">
-        <Section />
-        <AddNote setStateFormVideo={setStateFormVideo} />
-      </div>
+    <Media
+      query="(min-width: 850px)"
+      render={(match) => {
+        return (
+          <Media
+            query="(min-width: 650px)"
+            render={(match2) => {
+              const styleInfoChallengesPanel = {
+                width: "300px",
+                height: "250px",
+                borderRadius: "10px",
+                position: "relative",
+                background: "var(--color-grey-background)",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-around",
+              };
+      
+              function changeStyles(apply, match) {
+                if (!match) apply();
+              }
+      
+              changeStyles(() => {
+                styleInfoChallengesPanel.height = "200px";
+              }, match);
 
-      <div
-        style={{ height: "50%" }}
-        className="d-flex justify-content-center align-items-center"
-      >
-        <p style={{ color: "var(--color-grey)" }}>Nivel 3</p>
-        <canvas style={{ position: "absolute" }} ref={canvasLineBgRef} />
-        <canvas style={{ position: "absolute" }} ref={canvasLineRef} />
-      </div>
-    </div>
+              changeStyles(() => {
+                styleInfoChallengesPanel.width = "100%";
+                styleInfoChallengesPanel.marginBottom = "30px";
+              }, match2);
+
+              return (
+                <div style={styleInfoChallengesPanel}>
+                  <div className="d-flex justify-content-around">
+                    <Section />
+                    <AddNote setStateFormVideo={setStateFormVideo} />
+                  </div>
+
+                  <div
+                    style={{ height: "50%" }}
+                    className="d-flex justify-content-center align-items-center"
+                  >
+                    <p style={{ color: "var(--color-grey)" }}>Nivel 3</p>
+                    <canvas
+                      style={{ position: "absolute" }}
+                      ref={canvasLineBgRef}
+                    />
+                    <canvas
+                      style={{ position: "absolute" }}
+                      ref={canvasLineRef}
+                    />
+                  </div>
+                </div>
+              );
+            }}
+          />
+        );
+      }}
+    />
   );
 }

@@ -7,7 +7,7 @@ import { useContext } from "react";
 
 export default function ({ setSideMenu }) {
   const { userData } = useContext(userContext);
-  const { photoURL } = userData.consume;
+  const { photoURL } = userData;
 
   return (
     <div className="Top-Nav-Bar justify-content-between">

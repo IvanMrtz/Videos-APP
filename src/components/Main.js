@@ -1,5 +1,5 @@
 import useFirestore from "../hooks/useFirestore";
-import React, { useContext, useEffect, useMemo } from "react";
+import React, { useCallback, useContext, useEffect, useMemo } from "react";
 import { useState } from "react";
 import Forms from "../utilities/Forms/Forms";
 import Form from "./Form";
@@ -14,6 +14,7 @@ import Friends from "./Friends";
 import "../styles/Main.css";
 import userContext from "../context/user-context";
 import Popup from "./Popup";
+import Media from "./MediaQuery";
 
 const videosContext = React.createContext();
 const sectionContext = React.createContext();
@@ -112,7 +113,7 @@ export function Main() {
   const [videos, setVideos] = useState(null);
   const [stateFormVideo, setStateFormVideo] = useState("");
   const [sideMenu, setSideMenu] = useState(false);
-  const [section, setSection] = useState("AllVideos");
+  const [section, setSection] = useState("MyVideos");
   const [inputs, setInputs] = useState([
     {
       Component: Form,
@@ -121,7 +122,9 @@ export function Main() {
       autoCatchErrorByEmptyFields: true,
       autoCatchErrorByRules: true,
       removeError: 3000,
-      onSubmit: add,
+      submits: {
+        default: { submit: add },
+      },
       data: {
         initial: {
           title: {
@@ -154,7 +157,9 @@ export function Main() {
       closeInSubmit: true,
       autoCatchErrorByEmptyFields: false,
       autoCatchErrorByRules: true,
-      onSubmit: update,
+      submits: {
+        default: { submit: update },
+      },
       removeError: 3000,
       data: {
         initial: {
@@ -179,6 +184,58 @@ export function Main() {
   ]);
   const sectionProvider = useMemo(() => ({ section, setSection }), [section]);
   const videosProvider = useMemo(() => ({ videos, setVideos }), [videos]);
+  const [mobile, setMobile] = useState(false);
+  const [refPopup, setRefPopup] = useState();
+  const [refMainContainer, setRefMainContainer] = useState();
+
+  useEffect(() => {
+    const node = refMainContainer;
+
+    if (refPopup && node) {
+      node.addEventListener("touchmove", (event) => {
+        if (
+          Math.round(node.scrollTop) + 50 >=
+          node.scrollHeight -
+            Math.round(node.getBoundingClientRect().height)
+        ) {
+          refPopup.style.opacity = "0";
+        } else {
+          refPopup.style.opacity = "1";
+        }
+      });
+    }
+  }, [refPopup, refMainContainer]);
+
+  const videosContainer = (
+    <MultipleComponents section={section}>
+      <Component
+        render={() => {
+          return (
+            <MyVideos>
+              <VideoContainer
+                setStateFormVideo={setStateFormVideo}
+                setInputs={setInputs}
+              />
+            </MyVideos>
+          );
+        }}
+        section="MyVideos"
+      />
+      <Component
+        render={() => {
+          return (
+            <AllVideos>
+              <VideoContainer
+                setStateFormVideo={setStateFormVideo}
+                setInputs={setInputs}
+              />
+            </AllVideos>
+          );
+        }}
+        section="AllVideos"
+      />
+    </MultipleComponents>
+  );
 
   return (
     <>
@@ -186,12 +243,12 @@ export function Main() {
         <videosContext.Provider value={videosProvider}>
           {!currentUser.emailVerified ? (
             <Popup
+              ref={setRefPopup}
               message="Atention: You do not have verified email. Please check it out for a better experience."
-              background="var(--color-grey-background)"
+              background="var(--color-grey-background-ligth)"
               color="var(--color-grey)"
             />
           ) : null}
-
           {sideMenu ? <SideMenu setSideMenu={setSideMenu} /> : null}
 
           <div className="Main-Container">
@@ -210,40 +267,58 @@ export function Main() {
               }}
               inputs={inputs}
             />
-            <div className="Main-Principal">
-              <InfoPanels setStateFormVideo={setStateFormVideo} />
+            <Media
+              query="(min-width: 850px)"
+              render={(match) => {
+                return (
+                  <Media
+                    query="(min-width: 650px)"
+                    render={(match2) => {
+                      const styleMainContainer = {
+                        height: "530px",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                      };
+                      function changeStyles(apply, match) {
+                        if (!match) apply();
+                      }
+                      changeStyles(() => {
+                        styleMainContainer.height = "100%";
+                        styleMainContainer.flexWrap = "wrap";
+                      }, match);
 
-              <MultipleComponents section={section}>
-                <Component
-                  render={() => {
-                    return (
-                      <MyVideos>
-                        <VideoContainer
-                          setStateFormVideo={setStateFormVideo}
-                          setInputs={setInputs}
-                        />
-                      </MyVideos>
-                    );
-                  }}
-                  section="MyVideos"
-                />
-                <Component
-                  render={() => {
-                    return (
-                      <AllVideos>
-                        <VideoContainer
-                          setStateFormVideo={setStateFormVideo}
-                          setInputs={setInputs}
-                        />
-                      </AllVideos>
-                    );
-                  }}
-                  section="AllVideos"
-                />
-              </MultipleComponents>
+                      changeStyles(() => {
+                        styleMainContainer.overflow = "scroll";
+                      }, match2);
 
-              <Friends />
-            </div>
+                      return (
+                        <div
+                          ref={setRefMainContainer}
+                          style={styleMainContainer}
+                        >
+                          <InfoPanels
+                            mobile={mobile}
+                            videosContainer={videosContainer}
+                            setMobile={setMobile}
+                            setStateFormVideo={setStateFormVideo}
+                          />
+
+                          {!mobile ? videosContainer : null}
+
+                          <Media
+                            query="(min-width: 850px)"
+                            render={(match) => {
+                              return <>{match ? <Friends /> : null}</>;
+                            }}
+                          />
+                        </div>
+                      );
+                    }}
+                  />
+                );
+              }}
+            />
           </div>
         </videosContext.Provider>
       </sectionContext.Provider>

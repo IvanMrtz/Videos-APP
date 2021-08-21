@@ -1,23 +1,23 @@
-import { Icon } from '@iconify/react';
+import { Icon } from "@iconify/react";
+import { forwardRef } from "react";
+import "../styles/Popup.css";
 
-export default function Popup(props) {
+export default forwardRef((props, ref) => {
     const { background = "red", color = "white", message = "" } = props;
 
     return (
-        <div style={{
-            background,
-            color,
-            width:"100%",
-            height: "60px",
-            position: "absolute",
-            bottom: 0,
-            left: 0,
-            display:"flex",
-            justifyContent: "center",
-            alignItems:"center",
-        }}>
-            <Icon icon="carbon:warning" />
-            <p style={{marginLeft: "40px", textAlign:"center"}}>{message}</p>
+      <div
+        ref={ref}
+        style={{
+          background,
+          color,
+        }}
+        className="Popup-Container"
+      >
+        <div className="Popup-Icon">
+          <Icon icon="carbon:warning" />
         </div>
-    )
-}
+        <p className="Popup-Message">{message}</p>
+      </div>
+    );
+});
