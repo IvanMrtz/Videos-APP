@@ -113,7 +113,7 @@ export function Main() {
   const [videos, setVideos] = useState(null);
   const [stateFormVideo, setStateFormVideo] = useState("");
   const [sideMenu, setSideMenu] = useState(false);
-  const [section, setSection] = useState("MyVideos");
+  const [section, setSection] = useState("AllVideos");
   const [inputs, setInputs] = useState([
     {
       Component: Form,

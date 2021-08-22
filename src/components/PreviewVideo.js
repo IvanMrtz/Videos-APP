@@ -17,6 +17,7 @@ function PreviewVideo(props) {
     idVideo,
     description,
     views,
+    likes,
     userUID,
     setStateFormVideo,
     setInputs,
@@ -29,7 +30,7 @@ function PreviewVideo(props) {
     <div className="Preview-Video" style={{ border: `1px solid ${color}` }}>
       {videoPopup ? (
         <Video
-          videoProps={{ title, description, idVideo, views }}
+          videoProps={{ title, description, idVideo, views, likes }}
           userUID={userUID}
           video={data.video}
           setVideoPopup={setVideoPopup}

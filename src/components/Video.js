@@ -143,12 +143,52 @@ export function VideoChat({ idVideo, userUID }) {
 export default function (props) {
   const { setVideoPopup, video, userUID, videoProps } = props;
   const { currentUser } = useContext(userContext);
-  const { title, description, views, idVideo } = videoProps;
+  const { title, description, views, likes, idVideo } = videoProps;
   const [src, setSrc] = useState();
   const ownerData = useUser(userUID);
   const { displayName, photoURL } = ownerData.consume;
   const { getDownloadURL } = useStorage();
-  const { update } = useFirestore();
+  const { update: _update } = useFirestore();
+  const [like, setLike] = useState();
+  const [likeColor, setLikeColor] = useState("white");
+
+  function update(toUpdate) {
+    _update(Object.assign({ idVideo, userUID }, toUpdate));
+  }
+
+  useEffect(() => {
+    const isLiked = likes.likings.find((uid) => uid === currentUser.uid);
+
+    if (currentUser.emailVerified) {
+      if (!isLiked) {
+        if (!like) {
+          setLikeColor("grey");
+        } else {
+          setLikeColor("#ff4e6d");
+          
+          update({
+            likes: {
+              likings: likes.likings.concat([currentUser.uid]),
+              count: likes.count + 1,
+            },
+          });
+        }
+      } else {
+        if (!like) {
+          setLikeColor("#ff4e6d");
+        } else {
+          setLikeColor("grey");
+          
+          update({
+            likes: {
+              likings: likes.likings.filter((uid) => uid !== currentUser.uid),
+              count: likes.count - 1,
+            },
+          });
+        }
+      }
+    }
+  }, [like]);
 
   useEffect(() => {
     getDownloadURL(["videos", userUID, idVideo]).then((url) => {
@@ -175,8 +215,6 @@ export default function (props) {
               ]),
               count: views.count + 1,
             },
-            idVideo,
-            userUID,
           });
         } else {
           if (
@@ -192,8 +230,6 @@ export default function (props) {
                 }),
                 count: views.count + 1,
               },
-              idVideo,
-              userUID,
             });
           }
         }
@@ -243,10 +279,13 @@ export default function (props) {
                             </button>
                             <button
                               id="Icon-Button-Animation-2"
+                              onClick={() => {
+                                setLike(Date.now());
+                              }}
                               className="Icon-Button default-button default-button-animation"
                             >
-                              <Icon icon="topcoat:like" />
-                              53
+                              <Icon color={likeColor} icon="topcoat:like" />
+                              {likes.count}
                             </button>
                           </div>
                         </div>

@@ -12,4 +12,19 @@
   flex-direction: column;
   justify-content: space-evenly;
   height: 400px;
+  width: 100%;
+}
+
+.Empty-Container img{
+  width: 350px;
+}
+
+@media(max-width: 380px) {
+  .Empty-Container img{
+    width: 95%;
+  }
+
+  .Empty-Container p{
+    font-size: 4vw;
+  }
 }

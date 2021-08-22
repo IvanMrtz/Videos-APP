@@ -16,7 +16,9 @@ export default memo(function ({ setStateFormVideo, setInputs }) {
   if (!videos.length) {
     return (
       <div className="Empty-Container">
-        <img width="350" src="undraw_empty_xct9.svg" alt="" />
+        <div className="d-flex justify-content-center">
+          <img src="undraw_empty_xct9.svg" alt="" />
+        </div>
         <p className="text-center grey-lower">
           {section === "MyVideos"
             ? "You don't currently have any video"

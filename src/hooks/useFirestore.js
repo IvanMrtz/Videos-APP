@@ -21,6 +21,10 @@ function useFirestore() {
               /** dangerous */
               delete video.fileVideo;
               delete video.fileThumbnail;
+              video.likes = {
+                likings: 0,
+                count: 0,
+              };
               video.views = {
                 viewers: [
                   {
