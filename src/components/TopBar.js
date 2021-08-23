@@ -10,7 +10,7 @@ export default function ({ setSideMenu }) {
   const { photoURL } = userData;
 
   return (
-    <div className="Top-Nav-Bar justify-content-between">
+    <div className="Top-Nav-Bar">
       <Logo />
       <Search />
       <ProfileImage

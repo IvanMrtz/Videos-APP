@@ -6,16 +6,18 @@ import { UserProvider } from "../context/user-context";
 import PrivateRoute from "./PrivateRoute";
 import Profile from "./Profile";
 import React from "react";
+import Video from "./Video";
 
 function App() {
   return (
     <Router>
-      <UserProvider>
+      <UserProvider>  
         <Switch>
           <PrivateRoute path="/" exact component={Main} />
-          <Route path="/profile/:uid" component={Profile} />
+          <Route path="/profile/:uid" exact component={Profile} />
+          <Route path="/video/:id/" exact component={Video} />
           <Route path="/auth" exact component={MainAuth} />
-          <Route path="/" component={PageNotFound} />
+          <Route path="*" component={PageNotFound} />
         </Switch>
       </UserProvider>
     </Router>

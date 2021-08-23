@@ -290,6 +290,7 @@ export function Main() {
 
                       changeStyles(() => {
                         styleMainContainer.overflow = "scroll";
+                        styleMainContainer.overflowX = "hidden";
                       }, match2);
 
                       return (

@@ -7,8 +7,9 @@ import { useState, useContext } from "react";
 import Video from "./Video";
 import userContext from "../context/user-context";
 import { sectionContext } from "./Main";
+import { Link, withRouter } from "react-router-dom";
 
-function PreviewVideo(props) {
+export default memo(function PreviewVideo(props) {
   const { remove } = useFirestore("users");
   const {
     title,
@@ -22,27 +23,26 @@ function PreviewVideo(props) {
     setStateFormVideo,
     setInputs,
   } = props;
-  const [data, setData] = useState({ video: null, thumbnail: null });
-  const [videoPopup, setVideoPopup] = useState();
+  const [data, setData] = useState({ thumbnail: null });
   const { section } = useContext(sectionContext);
 
   return (
     <div className="Preview-Video" style={{ border: `1px solid ${color}` }}>
-      {videoPopup ? (
-        <Video
-          videoProps={{ title, description, idVideo, views, likes }}
+      <Link
+        to={{
+          pathname: "video/" + idVideo,
+          state: {
+            userUID
+          },
+        }}
+      >
+        <Thumbnail
+          urlThumbnail={data.thumbnail}
           userUID={userUID}
-          video={data.video}
-          setVideoPopup={setVideoPopup}
+          idVideo={idVideo}
         />
-      ) : null}
+      </Link>
 
-      <Thumbnail
-        onClick={() => setVideoPopup(true)}
-        urlThumbnail={data.thumbnail}
-        userUID={userUID}
-        idVideo={idVideo}
-      />
       <div className="d-flex flex-column">
         <h2 className="small-2 linked">{title}</h2>
 
@@ -85,6 +85,4 @@ function PreviewVideo(props) {
       </div>
     </div>
   );
-}
-
-export default memo(PreviewVideo);
+});

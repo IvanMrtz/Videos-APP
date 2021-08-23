@@ -17,10 +17,8 @@ export const UserProvider = withRouter(({ children, history }) => {
       console.log(user);
       if (user) {
         setCurrentUser(user);
-        history.push("/");
       } else {
         setCurrentUser(user);
-        history.push("/auth");
       }
     });
 

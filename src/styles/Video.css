@@ -32,8 +32,8 @@
 
 .Video-Follows {
   display: flex;
-  width: 50%;
-  justify-content: space-evenly;
+  justify-content: space-between;
+  width: 30%;
 }
 
 .Video-Chat-Container {
@@ -104,6 +104,9 @@
   width: 25px;
   height: 25px;
   background: var(--color-linked);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .Video-Owner {
@@ -118,6 +121,7 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 25px;
+  margin-left: 10px;
   flex-direction: column;
 }
 
@@ -162,6 +166,12 @@
 @media (max-width: 850px) {
   .Video {
     width: 100%;
+  }
+
+  .Video-Follows {
+    width: 50%;
+    align-items: center;
+    justify-content: space-evenly;
   }
 }
 

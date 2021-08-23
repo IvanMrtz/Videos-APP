@@ -238,7 +238,15 @@ function useFirestore() {
       .onSnapshot(observer);
   }
 
-  return { add, read, remove, update, readAllVideos };
+  function readSingleVideo(observer, userUID) {
+    return firestore
+      .collection("users")
+      .doc(userUID)
+      .collection("videos")
+      .onSnapshot(observer);
+  }
+
+  return { add, read, remove, update, readAllVideos, readSingleVideo };
 }
 
 export default useFirestore;
