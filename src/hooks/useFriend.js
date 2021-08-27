@@ -12,8 +12,11 @@ export default function({user}) {
         .onSnapshot({
           next: (querySnapshot) => {
             const updatedFriends = querySnapshot.docs.map((docSnapshot) => {
-              return docSnapshot.data();
-            });
+              const data = docSnapshot.data();
+              if(Object.keys(data).length) {
+                return data;
+              }
+            }).filter(data => !!data);
   
             setFriends(updatedFriends);
           },

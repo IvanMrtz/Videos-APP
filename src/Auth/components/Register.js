@@ -72,7 +72,7 @@ export default function (props) {
           type="number"
           onChange={(ev) =>
             setInputs((state) => {
-              return { ...state, [ev.target.name]: ev.target.value };
+              return { ...state, [ev.target.name]: Number(ev.target.value) };
             })
           }
           placeholder="Age"

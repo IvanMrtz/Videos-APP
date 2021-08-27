@@ -9,6 +9,7 @@
   width: 100%;
   justify-content: space-around;
   flex-wrap: wrap;
+  position: relative;
   height: 400px;
 }
 
@@ -45,10 +46,11 @@
   width: 300px;
   height: 400px;
   background: var(--color-grey-background);
+  position: relative;
 }
 
 .Video-Comments {
-  height:260px;
+  height: 260px;
 }
 
 .Video-Chat-Title {
@@ -64,7 +66,7 @@
   margin-bottom: 20px;
 }
 
-.Video-Comment-Content{
+.Video-Comment-Content {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -85,17 +87,39 @@
   background: var(--color-grey-background-lower);
   width: 91%;
   height: 40px;
-  border-radius: 20px;
+  border-radius: 15px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+}
+
+.Video-Chat-Bottom > * {
+  margin-inline: 3%;
+}
+
+.Video-Comment-Top {
+  align-items: center;
+  display: flex;
+}
+
+.Video-Comment-Date {
+  margin-left: 10px;
+  font-size: 10px;
+  transition: all 1s;
+}
+
+.Video-Comment-Date:hover {
+  color: var(--color-linked);
 }
 
 .Video-Chat-Input {
   background: none;
-  border:none;
+  border: none;
   outline: none;
   color: var(--color-grey);
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 .Video-Chat-Send {
@@ -114,6 +138,24 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 25px;
+  position: relative;
+}
+
+.Division-Line {
+  position: absolute;
+  width: 100%;
+  border: 1px solid var(--color-grey-background-lower);
+}
+
+#Divison-Line-Chat {
+  display: none;
+}
+
+.Profile-Public-Data {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-evenly;
 }
 
 .Video-Presentation {
@@ -138,6 +180,14 @@
 }
 
 .Loading-Container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.Loading {
   width: 2rem;
   height: 2rem;
   display: flex;
@@ -148,7 +198,7 @@
   display: block;
   width: 0.5rem;
   height: 0.5rem;
-  background-color: pink;
+  background-color: var(--color-linked);
   border-radius: 0.25rem;
 }
 
@@ -168,10 +218,35 @@
     width: 100%;
   }
 
+  #Divison-Line-Chat {
+    display: block;
+  }
+
   .Video-Follows {
     width: 50%;
     align-items: center;
     justify-content: space-evenly;
+  }
+
+  .Video-Chat-Container {
+    background: none;
+    width: 100%;
+  }
+
+  .Video-Chat-Top {
+    display: none;
+  }
+
+  .Video-Comment-Container {
+    justify-content: flex-start;
+  }
+
+  .Video-Comment-Container > * {
+    margin-left: 5%;
+  }
+
+  .Video-Comment-Container img {
+    width: 8%;
   }
 }
 
@@ -182,19 +257,26 @@
     border-radius: 50%;
   }
 
-  #Icon-Button-Animation-2{
+  #Icon-Button-Animation-2 {
     width: auto;
   }
-  #Icon-Button-Animation-2 > *{
+  #Icon-Button-Animation-2 > * {
     margin-inline: 5px;
   }
+
+  .Video-Presentation {
+    margin-left: 15px;
+  }
+
   .Video-Title {
     font-size: 25px;
-    text-align: center;
   }
 
   .Video-Description {
     font-size: 13px;
-    text-align: center;
+  }
+
+  .Video-Comment-Container img {
+    width: 15%;
   }
 }

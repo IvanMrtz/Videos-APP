@@ -15,6 +15,7 @@ import "../styles/Main.css";
 import userContext from "../context/user-context";
 import Popup from "./Popup";
 import Media from "./MediaQuery";
+import concatDocs from "../utilities/ConcatDocs/concatDocs";
 
 const videosContext = React.createContext();
 const sectionContext = React.createContext();
@@ -28,18 +29,6 @@ export function AllVideos(props) {
   const { readAllVideos } = useFirestore();
 
   useEffect(() => {
-    function concatVideos(videos) {
-      let flatVideos = videos.filter((video) => !!video.length);
-
-      if (flatVideos.length) {
-        flatVideos = flatVideos.reduce((acc, el) => {
-          return acc.concat(el);
-        });
-      }
-
-      return flatVideos;
-    }
-
     const observer = {
       next: (querySnapshot) => {
         let promises = [];
@@ -69,7 +58,7 @@ export function AllVideos(props) {
         Promise.all(promises).then((videos) => {
           if (promises !== "finished") {
             promises = "finished";
-            setVideos(concatVideos(videos));
+            setVideos(concatDocs(videos));
           }
         });
       },
@@ -120,17 +109,12 @@ export function Main() {
       name: "Create",
       closeInSubmit: true,
       autoCatchErrorByEmptyFields: true,
-      autoCatchErrorByRules: true,
-      removeError: 3000,
       submits: {
         default: { submit: add },
       },
       data: {
         initial: {
-          title: {
-            field: "",
-            rules: [{ maxCharacters: 29 }],
-          },
+          title: "",
           color: "",
           fileVideo: "",
           fileThumbnail: "",
@@ -156,28 +140,17 @@ export function Main() {
       name: "Edit",
       closeInSubmit: true,
       autoCatchErrorByEmptyFields: false,
-      autoCatchErrorByRules: true,
       submits: {
         default: { submit: update },
       },
-      removeError: 3000,
       data: {
         initial: {
-          title: {
-            field: "",
-            rules: [{ maxCharacters: 29 }],
-          },
+          title: "",
+          color: "",
           fileVideo: "",
           fileThumbnail: "",
-          color: "",
-          description: {
-            field: "",
-            rules: [{ maxCharacters: 500 }],
-          },
-          category: {
-            field: "",
-            rules: [{ maxCharacters: 20 }],
-          },
+          description: "",
+          category: "",
         },
       },
     },

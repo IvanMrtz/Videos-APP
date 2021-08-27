@@ -1,7 +1,6 @@
 import { useEffect, useState, useContext, useRef, useCallback } from "react";
 import userContext from "../context/user-context";
 import useStorage from "../hooks/useStorage";
-import Background from "./Background";
 import "../styles/Video.css";
 import ProfileImage from "./ProfileImage";
 import { motion } from "framer-motion";
@@ -12,8 +11,8 @@ import useUser from "../hooks/useUser";
 import { withRouter } from "react-router";
 import useFirestore from "../hooks/useFirestore";
 import Media from "./MediaQuery";
-import { useLocation, useParams } from "react-router-dom";
-import { auth } from "../firebase/config";
+import { useHistory, useLocation, useParams } from "react-router-dom";
+import firebase from "firebase";
 
 const loadingContainerVariants = {
   start: {
@@ -33,7 +32,7 @@ const loadingCircleVariants = {
     y: "50%",
   },
   end: {
-    y: "150%",
+    y: "100%",
   },
 };
 
@@ -44,7 +43,7 @@ const loadingCircleTransition = {
 };
 
 export const Message = withRouter(function (props) {
-  const { message, photo, name, history, userUID } = props;
+  const { message, createdAt, photo, name, history, userUID } = props;
 
   return (
     <>
@@ -60,7 +59,20 @@ export const Message = withRouter(function (props) {
         />
 
         <div className="Video-Comment-Content">
-          <p className="Video-Comment-Name">{name}</p>
+          <div className="Video-Comment-Top">
+            <p className="Video-Comment-Name">{name}</p>
+            <p className="Video-Comment-Date">
+              {(function () {
+                const parsedDate = new Date(createdAt);
+                const today = new Date(Date.now());
+                const isToday = parsedDate.getDay() === today.getDay();
+
+                return isToday
+                  ? parsedDate.toLocaleTimeString()
+                  : parsedDate.toLocaleDateString();
+              })()}
+            </p>
+          </div>
           <p className="Video-Comment-Text">{message}</p>
         </div>
       </div>
@@ -93,6 +105,12 @@ export function VideoChat({ idVideo, userUID }) {
 
   return (
     <div className="Video-Chat-Container">
+      <hr
+        style={{ top: "0px" }}
+        id="Divison-Line-Chat"
+        className="Division-Line"
+      />
+
       <div className="Video-Chat-Top">
         <h2 className="Video-Chat-Title">Video chat</h2>
       </div>
@@ -143,12 +161,13 @@ export function VideoChat({ idVideo, userUID }) {
 // see: https://overreacted.io/a-complete-guide-to-useeffect/
 export default function () {
   const { currentUser } = useContext(userContext);
-  const { state } = useLocation();
+  const { state = { userUID: "0" } } = useLocation();
+  const history = useHistory();
   const { userUID } = state;
   const { id: idVideo } = useParams();
   const [src, setSrc] = useState();
   const ownerData = useUser(userUID);
-  const { displayName, photoURL } = ownerData.consume;
+  const { displayName, subscribers, photoURL } = ownerData.consume;
   const { getDownloadURL } = useStorage();
   const { update: _update, readSingleVideo } = useFirestore();
   const [likeColor, setLikeColor] = useState("white");
@@ -161,34 +180,45 @@ export default function () {
   const { views, likes, description, title } = videoData;
 
   const isLiked = useCallback(() => {
-    if (likes) return likes.likings.find((uid) => uid === currentUser.uid);
+    if (likes) {
+      return likes.likings.find((uid) => uid === currentUser.uid);
+    }
   }, [likes]);
 
-  const update = useCallback((toUpdate) => {
-    _update(Object.assign({ idVideo, userUID }, toUpdate));
-  }, [currentUser]);
+  const update = useCallback(
+    (toUpdate) => {
+      _update(Object.assign({ idVideo, userUID }, toUpdate));
+    },
+    [currentUser]
+  );
 
   const like = useCallback(() => {
     if (currentUser) {
       if (likes) {
         if (currentUser.emailVerified) {
+          const likings = likes.likings;
+          const timestamp =
+            firebase.default.firestore.FieldValue.serverTimestamp();
+
           if (!isLiked()) {
             setLikeColor("#ff4e6d");
 
             update({
               likes: {
-                likings: likes.likings.concat([currentUser.uid]),
+                likings: likings.concat([currentUser.uid]),
                 count: likes.count + 1,
               },
+              createdAt: timestamp,
             });
           } else {
             setLikeColor("grey");
 
             update({
               likes: {
-                likings: likes.likings.filter((uid) => uid !== currentUser.uid),
+                likings: likings.filter((uid) => uid !== currentUser.uid),
                 count: likes.count - 1,
               },
+              createdAt: timestamp,
             });
           }
         }
@@ -199,24 +229,34 @@ export default function () {
   useEffect(() => {
     if (currentUser) {
       const unsubSnapshot = readSingleVideo(
-        {
-          next: (querySnapshot) => {
-            console.log("Rendering single video...");
-            const updatedVideoData = querySnapshot.docs.map((docSnapshot) => {
-              return docSnapshot.data();
-            });
+        (querySnapshot) => {
+          console.log("Rendering single video...");
+          const updatedVideoData = querySnapshot.docs.map((doc) => {
+            return doc.data();
+          });
+          const videoRequired = updatedVideoData.find(
+            (video) => video.userUID === userUID
+          );
 
-            setVideoData(
-              updatedVideoData.find((video) => video.userUID === userUID)
-            );
-          },
+          if (videoRequired) {
+            setVideoData(videoRequired);
+
+            getDownloadURL(["videos", userUID, idVideo]).then((url) => {
+              setSrc(url);
+            });
+          } else {
+            history.push("/error");
+          }
         },
-        currentUser.uid
+        (error) => {
+          console.error(error);
+        },
+        userUID
       );
 
       return unsubSnapshot;
     }
-  }, [currentUser]);
+  }, [currentUser, idVideo, userUID]);
 
   useEffect(() => {
     if (isLiked()) {
@@ -227,66 +267,34 @@ export default function () {
   }, [likes]);
 
   useEffect(() => {
-    getDownloadURL(["videos", userUID, idVideo]).then((url) => {
-      setSrc(url);
-    });
-  }, []);
-
-  useEffect(() => {
     if (currentUser) {
       if (views) {
-        const now = Date.now();
-        const actualViewer = views.viewers.find(({ userUID }) => {
+        const actualViewer = views.viewers.find((userUID) => {
           return userUID === currentUser.uid;
         });
 
-        if (currentUser.uid) {
-          if (currentUser.emailVerified) {
-            if (!actualViewer) {
-              update({
-                views: {
-                  viewers: views.viewers.concat([
-                    {
-                      userUID: currentUser.uid,
-                      refresh: now,
-                    },
-                  ]),
-                  count: views.count + 1,
-                },
-              });
-            } else {
-              if (
-                now - actualViewer.refresh >= 600000 ||
-                now - actualViewer.refresh === now
-              ) {
-                update({
-                  views: {
-                    viewers: views.viewers.map((viewer) => {
-                      return viewer.userUID === currentUser.uid
-                        ? Object.assign(viewer, { refresh: now })
-                        : viewer;
-                    }),
-                    count: views.count + 1,
-                  },
-                });
-              }
-            }
-          }
+        if (!actualViewer) {
+          update({
+            views: {
+              viewers: views.viewers.concat([currentUser.uid]),
+              count: views.count + 1,
+            },
+          });
         }
       }
     }
-  }, [currentUser]);
+  }, [currentUser, views]);
 
   return (
     <Media
       query="(min-width: 380px)"
       render={(match) => {
         return (
-          <div className="Video-Container">
-            <div className="Video-Top">
-              <div className="Video">
-                {src ? (
-                  <>
+          <>
+            {src ? (
+              <div className="Video-Container">
+                <div className="Video-Top">
+                  <div className="Video">
                     <div>
                       <video
                         className="Video-Element"
@@ -305,7 +313,12 @@ export default function () {
                             image={photoURL}
                             alt="Profile Image"
                           />
-                          <p className="linked">{displayName}</p>
+                          <div className="Profile-Public-Data">
+                            <p className="grey">{displayName}</p>
+                            <p className="linked very-small">
+                              {subscribers} subscribers
+                            </p>
+                          </div>
                         </div>
                         <div className="Video-Follows">
                           <button
@@ -325,6 +338,10 @@ export default function () {
                             {likes ? likes.count : 0}
                           </button>
                         </div>
+                        <hr
+                          style={{ bottom: "-25px" }}
+                          className="Division-Line"
+                        />
                       </div>
                       <div className="Video-Presentation">
                         <h2 className="grey Video-Title">{title}</h2>
@@ -333,35 +350,38 @@ export default function () {
                         </p>
                       </div>
                     </div>
-                  </>
-                ) : (
-                  <motion.div
-                    className="Loading-Container"
-                    variants={loadingContainerVariants}
-                    initial="start"
-                    animate="end"
-                  >
-                    <motion.span
-                      className="Loading-Circle"
-                      variants={loadingCircleVariants}
-                      transition={loadingCircleTransition}
-                    />
-                    <motion.span
-                      className="Loading-Circle"
-                      variants={loadingCircleVariants}
-                      transition={loadingCircleTransition}
-                    />
-                    <motion.span
-                      className="Loading-Circle"
-                      variants={loadingCircleVariants}
-                      transition={loadingCircleTransition}
-                    />
-                  </motion.div>
-                )}
+                  </div>
+
+                  <VideoChat idVideo={idVideo} userUID={userUID} />
+                </div>
               </div>
-              <VideoChat idVideo={idVideo} userUID={userUID} />
-            </div>
-          </div>
+            ) : (
+              <div className="Loading-Container">
+                <motion.div
+                  className="Loading"
+                  variants={loadingContainerVariants}
+                  initial="start"
+                  animate="end"
+                >
+                  <motion.span
+                    className="Loading-Circle"
+                    variants={loadingCircleVariants}
+                    transition={loadingCircleTransition}
+                  />
+                  <motion.span
+                    className="Loading-Circle"
+                    variants={loadingCircleVariants}
+                    transition={loadingCircleTransition}
+                  />
+                  <motion.span
+                    className="Loading-Circle"
+                    variants={loadingCircleVariants}
+                    transition={loadingCircleTransition}
+                  />
+                </motion.div>
+              </div>
+            )}
+          </>
         );
       }}
     />

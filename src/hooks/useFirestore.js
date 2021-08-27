@@ -3,6 +3,7 @@ import Swal from "sweetalert2";
 import { useContext } from "react";
 import userContext from "../context/user-context";
 import useStorage from "./useStorage";
+import firebase from "firebase";
 
 function useFirestore() {
   const { currentUser } = useContext(userContext);
@@ -11,77 +12,70 @@ function useFirestore() {
   // : if request.resource.contentType.matches('video/mp4') || request.resource.contentType.matches('image/jpg');
 
   function add(video, done = () => {}, error = () => {}) {
-    if (currentUser.emailVerified) {
-      readStorage(["videos", currentUser.uid, video.idVideo])
-        .put(video.fileVideo)
-        .then(() => {
-          readStorage(["thumbnails", currentUser.uid, video.idVideo])
-            .put(video.fileThumbnail)
-            .then(() => {
-              /** dangerous */
-              delete video.fileVideo;
-              delete video.fileThumbnail;
-              video.likes = {
-                likings: 0,
-                count: 0,
-              };
-              video.views = {
-                viewers: [
-                  {
-                    refresh: 0,
-                    userUID: currentUser.uid,
+    // if (currentUser.emailVerified) {
+    readStorage(["videos", currentUser.uid, video.idVideo])
+      .put(video.fileVideo)
+      .then(() => {
+        readStorage(["thumbnails", currentUser.uid, video.idVideo])
+          .put(video.fileThumbnail)
+          .then(() => {
+            const timestamp =
+              firebase.default.firestore.FieldValue.serverTimestamp();
+
+            delete video.fileVideo;
+            delete video.fileThumbnail;
+            video.userUID = currentUser.uid;
+            video.likes = {
+              likings: [],
+              count: 0,
+            };
+            video.createdAt = timestamp;
+            video.views = {
+              viewers: [],
+              count: 0,
+            };
+
+            const videoRef = firestore
+              .collection("users")
+              .doc(currentUser.uid)
+              .collection("videos")
+              .doc(video.idVideo);
+
+            videoRef
+              .set(video)
+              .then(() => {
+                const Toast = Swal.mixin({
+                  toast: true,
+                  position: "top-end",
+                  showConfirmButton: false,
+                  timer: 1500,
+                  timerProgressBar: true,
+                  didOpen: (toast) => {
+                    toast.addEventListener("mouseenter", Swal.stopTimer);
+                    toast.addEventListener("mouseleave", Swal.resumeTimer);
                   },
-                ],
-                count: 0,
-              };
-              /** dangerous */
-
-              firestore
-                .collection("users")
-                .doc(currentUser.uid)
-                .collection("videos")
-                .doc(video.idVideo)
-                .collection("chat")
-                .add({
-                  name: "Bot",
-                  photo: "https://picsum.photos/35",
-                  message: "write something mate!",
                 });
 
-              firestore
-                .collection("users")
-                .doc(currentUser.uid)
-                .collection("videos")
-                .doc(video.idVideo)
-                .set(video)
-                .then(() => {
-                  done();
-                })
-                .catch(({ message }) => {
-                  error(message);
+                Toast.fire({
+                  icon: "success",
+                  title: "Successfully created",
                 });
 
-              const Toast = Swal.mixin({
-                toast: true,
-                position: "top-end",
-                showConfirmButton: false,
-                timer: 1500,
-                timerProgressBar: true,
-                didOpen: (toast) => {
-                  toast.addEventListener("mouseenter", Swal.stopTimer);
-                  toast.addEventListener("mouseleave", Swal.resumeTimer);
-                },
+                videoRef
+                  .collection("chat")
+                  .add({})
+                  .then(() => {
+                    done();
+                  });
+              })
+              .catch(({message}) => {
+                error(message);
               });
-
-              Toast.fire({
-                icon: "success",
-                title: "Successfully created",
-              });
-            })
-            .catch(({ message }) => error(message));
-        })
-        .catch(({ message }) => error(message));
-    }
+          })
+          .catch(({ message }) => error(message));
+      })
+      .catch(({ message }) => error(message));
+    // }
   }
 
   function remove(video) {
@@ -126,14 +120,16 @@ function useFirestore() {
   }
 
   function update(video, done = () => {}, error = () => {}) {
+    console.log(video);
     if (currentUser.emailVerified) {
-      const { userUID = currentUser.uid } = video;
-      /** dangerous */
-      delete video.userUID;
-      /** dangerous */
-
+      const { userUID = currentUser.uid, idVideo } = video;
       let toUpdateFirestore = {};
       let toUpdateStorage = {};
+
+      /* dangerous */
+      // delete video.userUID;
+      // delete video.idVideo;
+      /** dangerous */
 
       Object.entries(video).map(([key, val]) => {
         if (!val || typeof val === "function") {
@@ -173,11 +169,9 @@ function useFirestore() {
         if (toUpdateStorage["fileVideo"]) {
           data.push(
             new Promise((res, rej) => {
-              const uploadTask = readStorage([
-                "videos",
-                userUID,
-                video.idVideo,
-              ]).put(toUpdateStorage["fileVideo"]);
+              const uploadTask = readStorage(["videos", userUID, idVideo]).put(
+                toUpdateStorage["fileVideo"]
+              );
 
               onChangeTask(uploadTask, res, "video");
             })
@@ -189,7 +183,7 @@ function useFirestore() {
               const uploadTask = readStorage([
                 "thumbnails",
                 userUID,
-                video.idVideo,
+                idVideo,
               ]).put(toUpdateStorage["fileThumbnail"]);
 
               onChangeTask(uploadTask, res, "thumbnail");
@@ -216,10 +210,12 @@ function useFirestore() {
             .collection("users")
             .doc(userUID)
             .collection("videos")
-            .doc(video.idVideo)
-            .update(toUpdateFirestore);
+            .doc(idVideo)
+            .update(toUpdateFirestore)
+            .catch(console.error);
         }
       }
+      console.log(idVideo);
       console.log(toUpdateStorage);
       console.log(toUpdateFirestore);
       done();
@@ -238,12 +234,12 @@ function useFirestore() {
       .onSnapshot(observer);
   }
 
-  function readSingleVideo(observer, userUID) {
+  function readSingleVideo(observer, error, userUID) {
     return firestore
       .collection("users")
       .doc(userUID)
       .collection("videos")
-      .onSnapshot(observer);
+      .onSnapshot(observer, error);
   }
 
   return { add, read, remove, update, readAllVideos, readSingleVideo };

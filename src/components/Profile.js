@@ -19,8 +19,11 @@ export function AccountSettings(props) {
     email: "",
     password: "",
     age: "",
-  }
-  const [formState, dispatch] = useReducer(reducerFormAccountSettings, initialState);
+  };
+  const [formState, dispatch] = useReducer(
+    reducerFormAccountSettings,
+    initialState
+  );
 
   const handleInput = (event) => {
     dispatch({
@@ -34,8 +37,8 @@ export function AccountSettings(props) {
     dispatch({
       type: "CLEAR INPUTS",
       payload: initialState,
-    })
-  }
+    });
+  };
 
   return (
     <div className="Profile-Auth">
@@ -199,10 +202,31 @@ export default function Profile(props) {
             "url('https://images.unsplash.com/photo-1593642531955-b62e17bdaa9c?ixid=MnwxMjA3fDF8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80')",
         }}
       >
-        <div className="Change-Cover">
-          <Icon width="70%" icon="bx:bxs-camera" />
-          <p>Change Cover</p>
-        </div>
+        {currentUser.uid === uid ? (
+          <div className="Change-Cover">
+            <Icon width="70%" icon="bx:bxs-camera" />
+            <p>Change Cover</p>
+          </div>
+        ) : (
+          <div className="Social-Interactions">
+            <button
+              className="default-button default-button-animation"
+              onClick={() => {
+                
+              }}
+            >
+              Subscribe
+            </button>
+            <div className="Send-Friend-Request">
+              <Icon
+                height="100%"
+                width="10%"
+                icon="ant-design:user-add-outlined"
+              />
+              <p>Send friend request</p>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="Profile-Container">

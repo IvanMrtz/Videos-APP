@@ -43,11 +43,11 @@ export default function (user) {
     consume: data ?? {
       photoURL: null,
       displayName: null,
-      friends: null,
       peopleHelped: null,
       email: null,
       isOnline: null,
       age: null,
+      subscribers: null,
     },
     provide: setUpdatedData,
   };

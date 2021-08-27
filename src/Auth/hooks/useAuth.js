@@ -13,9 +13,8 @@ function useAuth() {
       })
       .catch(error);
   }
-  
+
   function updatePassword(password, _, error) {
-    console.log(password)
     auth.currentUser.updatePassword(password).catch(error);
   }
 
@@ -25,7 +24,7 @@ function useAuth() {
 
   function logout() {
     const userUID = auth.currentUser.uid;
-    auth.signOut().then(()=>{
+    auth.signOut().then(() => {
       provide({ isOnline: false, userUID });
     });
   }
@@ -55,13 +54,20 @@ function useAuth() {
                 email: newUser.user.email,
                 photoURL: "https://picsum.photos/40",
                 isOnline: false,
-                friends: 0,
+                subcribers: 0,
                 peopleHelped: 0,
-                age: data.age,
+                age: Number(data.age),
               })
               .then(() => {
+                firestore
+                  .collection("users")
+                  .doc(newUser.user.uid)
+                  .collection("friends")
+                  .add({});
+
                 done();
-              });
+              })
+              .catch(error);
           })
           .catch(error);
       });

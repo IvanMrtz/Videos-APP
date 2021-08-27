@@ -4,10 +4,8 @@ import { memo } from "react";
 import "../styles/PreviewVideo.css";
 import Thumbnail from "./Thumbnail";
 import { useState, useContext } from "react";
-import Video from "./Video";
-import userContext from "../context/user-context";
 import { sectionContext } from "./Main";
-import { Link, withRouter } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 export default memo(function PreviewVideo(props) {
   const { remove } = useFirestore("users");
@@ -16,9 +14,7 @@ export default memo(function PreviewVideo(props) {
     color,
     category,
     idVideo,
-    description,
     views,
-    likes,
     userUID,
     setStateFormVideo,
     setInputs,
