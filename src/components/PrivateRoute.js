@@ -14,7 +14,7 @@ export default function ({ component: RouteComponent, ...rest }) {
         if (!!currentUser) {
           return <RouteComponent {...routeProps} />;
         }else {
-          history.push("/auth");
+          return null;
         }
       }}
     />

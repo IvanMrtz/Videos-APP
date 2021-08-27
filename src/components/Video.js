@@ -63,7 +63,7 @@ export const Message = withRouter(function (props) {
             <p className="Video-Comment-Name">{name}</p>
             <p className="Video-Comment-Date">
               {(function () {
-                const parsedDate = new Date(createdAt);
+                const parsedDate = new Date(createdAt.toDate());
                 const today = new Date(Date.now());
                 const isToday = parsedDate.getDay() === today.getDay();
 
