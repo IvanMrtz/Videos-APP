@@ -1,0 +1,109 @@
+.Video-Comment-Container {
+  display: flex;
+  width: 100%;
+  margin-bottom: 20px;
+  transition: all 1s;
+  position: relative;
+}
+
+.Video-Comment-Start {
+  margin-left: 10px;
+}
+
+.Video-Comment-Container > * {
+  margin-inline: 10px;
+}
+
+.Video-Comment-Content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 200px;
+}
+
+.Video-Comment-Name {
+  color: var(--color-grey);
+}
+
+.Video-Comment-Text {
+  font-size: 13px;
+  text-align: left;
+  color: var(--color-grey-lower);
+}
+
+.Video-Comment-Top {
+  align-items: center;
+  display: flex;
+}
+
+.Video-Comment-Date {
+  margin-left: 10px;
+  font-size: 10px;
+  transition: all 1s;
+}
+
+.Video-Comment-Date:hover {
+  color: var(--color-linked);
+}
+
+.Options-Dots {
+  position: absolute;
+  right: 25px;
+  transition: all 1s;
+}
+
+.Options-Dots:hover {
+  color: var(--color-linked);
+}
+
+.Option:hover {
+  color: var(--color-linked);
+}
+
+.Video-Comment-Reply {
+  display: flex;
+  margin-left: 35px;
+  align-items: center;
+  position: absolute;
+  top: -20px;
+}
+
+.Video-Comment-Reply > * {
+  margin-inline: 2px;
+}
+
+.Video-Reply-Name {
+  color: var(--color-grey);
+  font-size: 12px;
+}
+
+.Video-Reply-Text {
+  margin-left: 10px;
+  font-size: 11px;
+  color: var(--color-grey-lower);
+}
+
+.Video-Reply-Line {
+  position: absolute;
+  width: 17px;
+  height: 10px;
+  left: -15px;
+  z-index: 1;
+  top: 13px;
+  border-radius: 3px;
+  border: 0.09rem solid var(--color-grey-background-lower);
+  border-bottom: none;
+  border-right: none;
+}
+
+@media (max-width: 850px) {
+  .Video-Comment-Container > * {
+    margin-inline: 15px;
+  }
+}
+
+@media (max-width: 350px) {
+  .Video-Comment-Container > * {
+    margin-inline: 10px;
+  }
+}

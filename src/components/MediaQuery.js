@@ -1,18 +1,18 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
-export default function MediaQuery(props){
-    const [matches, setMatches] = useState(matchMedia(props.query));
-    const render = props.render;
+export default function MediaQuery(props) {
+  const [matches, setMatches] = useState(window.matchMedia(props.query));
+  const render = props.render;
 
-    useEffect(() => {
-        function listener(ev){
-            setMatches(ev);
-        }
-        
-        matches.addListener(listener)
+  useEffect(() => {
+    function listener(ev) {
+      setMatches(ev);
+    }
 
-        return () => matches.removeListener(listener);
-    }, [])
+    matches.addEventListener("change", listener);
 
-    return <>{ matches.matches ? render(true) : render(false) }</>
-};
+    return () => matches.removeListener(listener);
+  }, []);
+
+  return <>{render(matches.matches)}</>;
+}

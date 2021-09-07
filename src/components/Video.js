@@ -8,11 +8,11 @@ import { Icon } from "@iconify/react";
 import useMessage from "../hooks/useMessage";
 import Scroll from "./Scroll";
 import useUser from "../hooks/useUser";
-import { withRouter } from "react-router";
 import useFirestore from "../hooks/useFirestore";
 import Media from "./MediaQuery";
 import { useHistory, useLocation, useParams } from "react-router-dom";
 import firebase from "firebase";
+import { Message } from "./Message";
 
 const loadingContainerVariants = {
   start: {
@@ -42,51 +42,14 @@ const loadingCircleTransition = {
   ease: "easeInOut",
 };
 
-export const Message = withRouter(function (props) {
-  const { message, createdAt, photo, name, history, userUID } = props;
-
-  return (
-    <>
-      <div className="Video-Comment-Container">
-        <ProfileImage
-          action={() => {
-            history.push("/profile/" + userUID);
-          }}
-          width="15%"
-          height="15%"
-          image={photo}
-          alt="Profile Image"
-        />
-
-        <div className="Video-Comment-Content">
-          <div className="Video-Comment-Top">
-            <p className="Video-Comment-Name">{name}</p>
-            <p className="Video-Comment-Date">
-              {(function () {
-                const parsedDate = new Date(createdAt.toDate());
-                const today = new Date(Date.now());
-                const isToday = parsedDate.getDay() === today.getDay();
-
-                return isToday
-                  ? parsedDate.toLocaleTimeString()
-                  : parsedDate.toLocaleDateString();
-              })()}
-            </p>
-          </div>
-          <p className="Video-Comment-Text">{message}</p>
-        </div>
-      </div>
-    </>
-  );
-});
-
-export function VideoChat({ idVideo, userUID }) {
+export function VideoChat({ idVideo, ownerVideoUID }) {
   const { userData, currentUser } = useContext(userContext);
   const { photoURL, displayName } = userData;
-  const { messages, writeMessage } = useMessage({ idVideo, userUID });
+  const { messages, writeMessage } = useMessage({ idVideo, ownerVideoUID });
   const inputMessage = useRef(null);
   const sendRef = useRef(null);
   const autoScroll = useRef(null);
+  const [currentReply, setCurrentReply] = useState(false);
 
   useEffect(() => {
     if (inputMessage.current) {
@@ -96,7 +59,7 @@ export function VideoChat({ idVideo, userUID }) {
         }
       });
     }
-  }, [inputMessage]);
+  }, [inputMessage.current]);
 
   useEffect(() => {
     if (autoScroll.current)
@@ -118,41 +81,65 @@ export function VideoChat({ idVideo, userUID }) {
       <Scroll className="Video-Comments" distance="10px">
         {messages.length
           ? messages.map((message) => {
-              return <Message key={message.id} {...message} />;
+              return (
+                <Message
+                  currentReply={currentReply}
+                  setCurrentReply={setCurrentReply}
+                  idVideo={idVideo}
+                  ownerVideoUID={ownerVideoUID}
+                  key={message.id}
+                  {...message}
+                />
+              );
             })
           : null}
         <div ref={autoScroll}></div>
       </Scroll>
 
       <div className="Video-Chat-Bottom">
-        <input
-          ref={inputMessage}
-          placeholder="Write your message"
-          className="Video-Chat-Input"
-          type="text"
-        />
-        <label
-          ref={sendRef}
-          onClick={() => {
-            if (currentUser.emailVerified) {
-              const data = {
-                photo: photoURL,
-                name: displayName,
-                message: inputMessage.current.value,
-                userUID: currentUser.uid,
-              };
+        {currentReply ? (
+          <div className="Video-Chat-Reply">
+            <p>{"Reply to " + currentReply.name}</p>
+            <Icon
+              onClick={() => {
+                setCurrentReply(false);
+              }}
+              icon="clarity:close-line"
+            />
+          </div>
+        ) : null}
+        <div className="Video-Write-Message">
+          <input
+            ref={inputMessage}
+            placeholder="Write your message"
+            className="clean-input Video-Chat-Input"
+            type="text"
+          />
+          <label
+            ref={sendRef}
+            onClick={() => {
+              if (currentUser.emailVerified) {
+                const data = {
+                  photo: photoURL,
+                  name: displayName,
+                  message: inputMessage.current.value,
+                  userUID: currentUser.uid,
+                  reply: currentReply,
+                };
 
-              writeMessage(data).then(() => {
-                if (autoScroll.current)
-                  autoScroll.current.scrollIntoView({ behavior: "smooth" });
-              });
-              inputMessage.current.value = "";
-            }
-          }}
-          className="Video-Chat-Send"
-        >
-          <Icon icon="carbon:send-alt-filled" />
-        </label>
+                writeMessage(data).then(() => {
+                  if (autoScroll.current)
+                    autoScroll.current.scrollIntoView({ behavior: "smooth" });
+                });
+                inputMessage.current.value = "";
+                setCurrentReply(false);
+              }
+            }}
+            className="Video-Chat-Send"
+          >
+            <Icon icon="carbon:send-alt-filled" />
+          </label>
+        </div>
       </div>
     </div>
   );
@@ -163,13 +150,13 @@ export default function () {
   const { currentUser } = useContext(userContext);
   const { state = { userUID: "0" } } = useLocation();
   const history = useHistory();
-  const { userUID } = state;
+  const { userUID: ownerVideoUID } = state;
   const { id: idVideo } = useParams();
   const [src, setSrc] = useState();
-  const ownerData = useUser(userUID);
+  const ownerData = useUser(ownerVideoUID);
   const { displayName, subscribers, photoURL } = ownerData.consume;
   const { getDownloadURL } = useStorage();
-  const { update: _update, readSingleVideo } = useFirestore();
+  const { update, readSingleVideo } = useFirestore();
   const [likeColor, setLikeColor] = useState("white");
   const [videoData, setVideoData] = useState({
     views: null,
@@ -185,9 +172,9 @@ export default function () {
     }
   }, [likes]);
 
-  const update = useCallback(
+  const updateVideo = useCallback(
     (toUpdate) => {
-      _update(Object.assign({ idVideo, userUID }, toUpdate));
+      update(Object.assign({ idVideo, userUID: ownerVideoUID }, toUpdate));
     },
     [currentUser]
   );
@@ -203,7 +190,7 @@ export default function () {
           if (!isLiked()) {
             setLikeColor("#ff4e6d");
 
-            update({
+            updateVideo({
               likes: {
                 likings: likings.concat([currentUser.uid]),
                 count: likes.count + 1,
@@ -213,7 +200,7 @@ export default function () {
           } else {
             setLikeColor("grey");
 
-            update({
+            updateVideo({
               likes: {
                 likings: likings.filter((uid) => uid !== currentUser.uid),
                 count: likes.count - 1,
@@ -234,14 +221,11 @@ export default function () {
           const updatedVideoData = querySnapshot.docs.map((doc) => {
             return doc.data();
           });
-          const videoRequired = updatedVideoData.find(
-            (video) => video.userUID === userUID
-          );
 
-          if (videoRequired) {
-            setVideoData(videoRequired);
+          if (updatedVideoData?.length) {
+            setVideoData(updatedVideoData[0]);
 
-            getDownloadURL(["videos", userUID, idVideo]).then((url) => {
+            getDownloadURL(["videos", ownerVideoUID, idVideo]).then((url) => {
               setSrc(url);
             });
           } else {
@@ -251,12 +235,13 @@ export default function () {
         (error) => {
           console.error(error);
         },
-        userUID
+        ownerVideoUID,
+        idVideo
       );
 
       return unsubSnapshot;
     }
-  }, [currentUser, idVideo, userUID]);
+  }, [currentUser, idVideo, ownerVideoUID]);
 
   useEffect(() => {
     if (isLiked()) {
@@ -274,7 +259,7 @@ export default function () {
         });
 
         if (!actualViewer) {
-          update({
+          updateVideo({
             views: {
               viewers: views.viewers.concat([currentUser.uid]),
               count: views.count + 1,
@@ -309,14 +294,14 @@ export default function () {
                       <div className="Video-Owner">
                         <div className="Video-Profile">
                           <ProfileImage
-                            width="30%"
+                            width="45px"
                             image={photoURL}
                             alt="Profile Image"
                           />
                           <div className="Profile-Public-Data">
                             <p className="grey">{displayName}</p>
                             <p className="linked very-small">
-                              {subscribers} subscribers
+                              {subscribers?.count} subscribers
                             </p>
                           </div>
                         </div>
@@ -352,7 +337,7 @@ export default function () {
                     </div>
                   </div>
 
-                  <VideoChat idVideo={idVideo} userUID={userUID} />
+                  <VideoChat idVideo={idVideo} ownerVideoUID={ownerVideoUID} />
                 </div>
               </div>
             ) : (

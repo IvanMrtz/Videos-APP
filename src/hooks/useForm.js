@@ -23,7 +23,7 @@ export default function () {
       clearFieldsOnSubmit = false,
     } = options;
     let rulesOfFieldsParsed = {};
-
+    console.log(inputsData)
     if (inputsData) {
       Object.entries(rulesOfFields).forEach(([key, val]) => {
         if (typeof val === "object" && val !== null) {

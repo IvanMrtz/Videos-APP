@@ -1,12 +1,16 @@
-export default function ({
-  image,
-  width = "auto",
-  height = "auto",
-  action = () => {},
-  alt = "",
-}) {
+import { forwardRef } from "react";
+
+export default forwardRef(function (props, ref) {
+  const {
+    image,
+    width = "auto",
+    height = "auto",
+    action = () => {},
+    alt = "",
+  } = props;
+  
   return (
-    <>
+    <div ref={ref}>
       <img
         width={width}
         height={height}
@@ -15,6 +19,6 @@ export default function ({
         alt={alt}
         onClick={() => action(true)}
       />
-    </>
+    </div>
   );
-}
+});

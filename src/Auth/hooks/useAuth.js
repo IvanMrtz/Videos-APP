@@ -46,28 +46,20 @@ function useAuth() {
         auth.currentUser
           .sendEmailVerification()
           .then(() => {
-            firestore
-              .collection("users")
-              .doc(newUser.user.uid)
+            const refUser = firestore.collection("users").doc(newUser.user.uid);
+
+            refUser
               .set({
                 displayName: data.displayName,
                 email: newUser.user.email,
                 photoURL: "https://picsum.photos/40",
                 isOnline: false,
-                subcribers: 0,
-                peopleHelped: 0,
                 age: Number(data.age),
               })
-              .then(() => {
-                firestore
-                  .collection("users")
-                  .doc(newUser.user.uid)
-                  .collection("friends")
-                  .add({});
-
-                done();
-              })
+              .then(done)
               .catch(error);
+
+            refUser.collection("friends").add({});
           })
           .catch(error);
       });

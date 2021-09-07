@@ -4,8 +4,9 @@ import AddNote from "./AddNote";
 import Section from "./Section";
 import Media from "./MediaQuery";
 
-export default function ({ setStateFormVideo }) {
+export default function (props) {
   const [option, setOption] = useState("Name");
+  const { setVideos } = props; 
   const canvasLineRef = useRef();
   const canvasLineBgRef = useRef();
 
@@ -75,8 +76,8 @@ export default function ({ setStateFormVideo }) {
               return (
                 <div style={styleInfoChallengesPanel}>
                   <div className="d-flex justify-content-around">
-                    <Section />
-                    <AddNote setStateFormVideo={setStateFormVideo} />
+                    <Section setVideos={setVideos}/>
+                    <AddNote />
                   </div>
 
                   <div

@@ -7,7 +7,7 @@ import ProfileImage from "./ProfileImage";
 
 export default withRouter(function ({ history }) {
   const { userData, currentUser } = useContext(userContext);
-  const { displayName, friends, peopleHelped, email, photoURL } = userData;
+  const { displayName, friends, subscribers, email, photoURL } = userData;
   return (
     <Media
       query="(min-width: 850px)"
@@ -47,7 +47,8 @@ export default withRouter(function ({ history }) {
                       action={() => {
                         history.push("/profile/" + currentUser.uid);
                       }}
-                      width="60px"
+                      width="55px"
+                      height="55px"
                       image={photoURL}
                       alt="Profile Image"
                     />
@@ -61,8 +62,8 @@ export default withRouter(function ({ history }) {
                       Friends: <span className="linked">{friends}</span>
                     </p>
                     <p className="very-small-2 grey">
-                      People helped:{" "}
-                      <span className="linked">{peopleHelped}</span>
+                      Subscribers:{" "}
+                      <span className="linked">{subscribers?.count || "-"}</span>
                     </p>
                   </div>
                 </div>

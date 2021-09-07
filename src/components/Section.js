@@ -1,11 +1,10 @@
-import { useEffect, useContext } from "react";
+import { useEffect } from "react";
 import useLocalStorage from "../hooks/useLocalStorage";
-import { videosContext } from "./Main";
 import "../styles/Section.css";
 
-export default function () {
+export default function (props) {
   const [option, setOption] = useLocalStorage("option", "name");
-  const { setVideos } = useContext(videosContext);
+  const { setVideos } = props;
 
   useEffect(() => {
     setVideos((videos) => {

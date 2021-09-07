@@ -13,7 +13,7 @@ export default function ({ component: RouteComponent, ...rest }) {
       render={(routeProps) => {
         if (!!currentUser) {
           return <RouteComponent {...routeProps} />;
-        }else {
+        } else{
           return null;
         }
       }}

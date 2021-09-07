@@ -1,4 +1,4 @@
-.Videos-Container {
+.Videos-Main-Container {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -7,16 +7,19 @@
   height: inherit;
 }
 
+.Videos-Profile-Container {
+  margin-top: 20px;
+  display: flex;
+  position: absolute;
+  left:0;
+}
+
 .Empty-Container {
   display: flex;
   flex-direction: column;
   justify-content: space-evenly;
   height: 400px;
   width: 100%;
-}
-
-.Empty-Container img{
-  width: 350px;
 }
 
 @media(max-width: 380px) {

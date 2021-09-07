@@ -8,22 +8,40 @@ export default function (user) {
     }
   }
 
-  const [data, setData] = useState();
+  const [data, setData] = useState({});
+  const [subscribers, setSubscribers] = useState({});
   const [updatedData, setUpdatedData] = useState();
-
+  const finalData = Object.assign(data, subscribers);
+  const existsData = !!Object.keys(finalData).length;
   useEffect(() => {
     if (user) {
-      var unsubSnapshot = firestore
-        .collection("users")
-        .doc(user)
+      const refUser = firestore.collection("users").doc(user);
+      const unsubSnapshot = refUser.onSnapshot({
+        next: function (snapshot) {
+          setData(snapshot.data());
+        },
+      });
+
+      const unsubSnapshotSubscibers = refUser
+        .collection("subscribers")
         .onSnapshot({
-          next: function (snapshot) {
-            setData(snapshot.data());
+          next: (querySnapshot) => {
+            setSubscribers({
+              subscribers: {
+                count: String(querySnapshot.size),
+                users: querySnapshot.docs.map((doc) =>
+                  Object.assign(doc.data(), { userUID: doc.id })
+                ),
+              },
+            });
           },
         });
-    }
 
-    return unsubSnapshot;
+      return () => {
+        unsubSnapshot();
+        unsubSnapshotSubscibers();
+      };
+    }
   }, [user]);
 
   useEffect(() => {
@@ -40,15 +58,16 @@ export default function (user) {
   }, [updatedData]);
 
   return {
-    consume: data ?? {
-      photoURL: null,
-      displayName: null,
-      peopleHelped: null,
-      email: null,
-      isOnline: null,
-      age: null,
-      subscribers: null,
-    },
+    consume: existsData
+      ? finalData
+      : {
+          photoURL: null,
+          displayName: null,
+          email: null,
+          isOnline: null,
+          age: null,
+          subscribers: null,
+        },
     provide: setUpdatedData,
   };
 }

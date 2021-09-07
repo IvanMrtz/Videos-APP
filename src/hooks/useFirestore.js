@@ -1,6 +1,6 @@
 import { firestore } from "../firebase/config";
 import Swal from "sweetalert2";
-import { useContext } from "react";
+import { useCallback, useContext } from "react";
 import userContext from "../context/user-context";
 import useStorage from "./useStorage";
 import firebase from "firebase";
@@ -8,78 +8,71 @@ import firebase from "firebase";
 function useFirestore() {
   const { currentUser } = useContext(userContext);
   const { read: readStorage, getDownloadURL } = useStorage();
-
   // : if request.resource.contentType.matches('video/mp4') || request.resource.contentType.matches('image/jpg');
 
-  function add(video, done = () => {}, error = () => {}) {
-    // if (currentUser.emailVerified) {
-    readStorage(["videos", currentUser.uid, video.idVideo])
-      .put(video.fileVideo)
-      .then(() => {
-        readStorage(["thumbnails", currentUser.uid, video.idVideo])
-          .put(video.fileThumbnail)
-          .then(() => {
-            const timestamp =
-              firebase.default.firestore.FieldValue.serverTimestamp();
+  const add = useCallback(
+    (video, done = () => {}, error = () => {}) => {
+      readStorage(["videos", currentUser.uid, video.idVideo])
+        .put(video.fileVideo)
+        .then(() => {
+          readStorage(["thumbnails", currentUser.uid, video.idVideo])
+            .put(video.fileThumbnail)
+            .then(() => {
+              const timestamp =
+                firebase.default.firestore.FieldValue.serverTimestamp();
 
-            delete video.fileVideo;
-            delete video.fileThumbnail;
-            video.userUID = currentUser.uid;
-            video.likes = {
-              likings: [],
-              count: 0,
-            };
-            video.createdAt = timestamp;
-            video.views = {
-              viewers: [],
-              count: 0,
-            };
+              delete video.fileVideo;
+              delete video.fileThumbnail;
+              video.userUID = currentUser.uid;
+              video.likes = {
+                likings: [],
+                count: 0,
+              };
+              video.createdAt = timestamp;
+              video.views = {
+                viewers: [],
+                count: 0,
+              };
 
-            const videoRef = firestore
-              .collection("users")
-              .doc(currentUser.uid)
-              .collection("videos")
-              .doc(video.idVideo);
+              const videoRef = firestore
+                .collection("users")
+                .doc(currentUser.uid)
+                .collection("videos")
+                .doc(video.idVideo);
 
-            videoRef
-              .set(video)
-              .then(() => {
-                const Toast = Swal.mixin({
-                  toast: true,
-                  position: "top-end",
-                  showConfirmButton: false,
-                  timer: 1500,
-                  timerProgressBar: true,
-                  didOpen: (toast) => {
-                    toast.addEventListener("mouseenter", Swal.stopTimer);
-                    toast.addEventListener("mouseleave", Swal.resumeTimer);
-                  },
-                });
-
-                Toast.fire({
-                  icon: "success",
-                  title: "Successfully created",
-                });
-
-                videoRef
-                  .collection("chat")
-                  .add({})
-                  .then(() => {
-                    done();
+              videoRef
+                .set(video)
+                .then(() => {
+                  const Toast = Swal.mixin({
+                    toast: true,
+                    position: "top-end",
+                    showConfirmButton: false,
+                    timer: 1500,
+                    timerProgressBar: true,
+                    didOpen: (toast) => {
+                      toast.addEventListener("mouseenter", Swal.stopTimer);
+                      toast.addEventListener("mouseleave", Swal.resumeTimer);
+                    },
                   });
-              })
-              .catch(({message}) => {
-                error(message);
-              });
-          })
-          .catch(({ message }) => error(message));
-      })
-      .catch(({ message }) => error(message));
-    // }
-  }
 
-  function remove(video) {
-    if (currentUser.emailVerified) {
+                  Toast.fire({
+                    icon: "success",
+                    title: "Successfully created",
+                  });
+                })
+                .catch(({ message }) => {
+                  error(message);
+                });
+            })
+            .catch(({ message }) => error(message));
+        })
+        .catch(({ message }) => error(message));
+    },
+    [currentUser]
+  );
+
+  const remove = useCallback(
+    (video) => {
       Swal.fire({
         title: "Are you sure?",
         text: "You won't be able to revert this!",
@@ -92,19 +85,14 @@ function useFirestore() {
         if (result.isConfirmed) {
           Swal.fire("Deleted!", "Your video has been deleted.", "success");
 
-          firestore
+          const videoRef = firestore
             .collection("users")
             .doc(currentUser.uid)
             .collection("videos")
-            .doc(video.idVideo)
-            .delete();
+            .doc(video.idVideo);
 
-          const chatRef = firestore
-            .collection("users")
-            .doc(currentUser.uid)
-            .collection("videos")
-            .doc(video.idVideo)
-            .collection("chat");
+          videoRef.delete();
+          const chatRef = videoRef.collection("chat");
 
           chatRef.onSnapshot((docSnapshot) => {
             docSnapshot.forEach((doc) => {
@@ -116,20 +104,15 @@ function useFirestore() {
           readStorage(["thumbnails", currentUser.uid, video.idVideo]).delete();
         }
       });
-    }
-  }
+    },
+    [currentUser]
+  );
 
-  function update(video, done = () => {}, error = () => {}) {
-    console.log(video);
-    if (currentUser.emailVerified) {
-      const { userUID = currentUser.uid, idVideo } = video;
+  const update = useCallback(
+    (video, done = () => {}, error = () => {}) => {
+      const { userUID = currentUser?.uid, idVideo } = video;
       let toUpdateFirestore = {};
       let toUpdateStorage = {};
-
-      /* dangerous */
-      // delete video.userUID;
-      // delete video.idVideo;
-      /** dangerous */
 
       Object.entries(video).map(([key, val]) => {
         if (!val || typeof val === "function") {
@@ -168,7 +151,7 @@ function useFirestore() {
       if (Object.keys(toUpdateStorage).length > 0) {
         if (toUpdateStorage["fileVideo"]) {
           data.push(
-            new Promise((res, rej) => {
+            new Promise((res) => {
               const uploadTask = readStorage(["videos", userUID, idVideo]).put(
                 toUpdateStorage["fileVideo"]
               );
@@ -179,7 +162,7 @@ function useFirestore() {
         }
         if (toUpdateStorage["fileThumbnail"]) {
           data.push(
-            new Promise((res, rej) => {
+            new Promise((res) => {
               const uploadTask = readStorage([
                 "thumbnails",
                 userUID,
@@ -215,30 +198,32 @@ function useFirestore() {
             .catch(console.error);
         }
       }
-      console.log(idVideo);
+
       console.log(toUpdateStorage);
       console.log(toUpdateFirestore);
       done();
-    }
-  }
+    },
+    [currentUser]
+  );
 
   function readAllVideos(observer) {
     return firestore.collection("users").onSnapshot(observer);
   }
 
-  function read(observer) {
-    return firestore
-      .collection("users")
-      .doc(currentUser.uid)
-      .collection("videos")
-      .onSnapshot(observer);
-  }
-
-  function readSingleVideo(observer, error, userUID) {
+  function read(observer, userUID) {
     return firestore
       .collection("users")
       .doc(userUID)
       .collection("videos")
+      .onSnapshot(observer);
+  }
+
+  function readSingleVideo(observer, error, userUID, videoID) {
+    return firestore
+      .collection("users")
+      .doc(userUID)
+      .collection("videos")
+      .where("idVideo", "==", videoID)
       .onSnapshot(observer, error);
   }
 

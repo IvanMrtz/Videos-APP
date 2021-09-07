@@ -1,27 +1,29 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { firestore } from "../firebase/config";
 import firebase from "firebase/app";
 import concatDocs from "../utilities/ConcatDocs/concatDocs";
+import userContext from "../context/user-context";
 
-export default function ({ idVideo, userUID }) {
+export default function ({ idVideo, ownerVideoUID }) {
   const [messages, setMessages] = useState([]);
   const [changes, setChanges] = useState(false);
+  const { currentUser } = useContext(userContext);
+
+  const chatRef = firestore
+    .collection("users")
+    .doc(ownerVideoUID)
+    .collection("videos")
+    .doc(idVideo)
+    .collection("chat");
 
   useEffect(() => {
-    const chatRef = firestore
-      .collection("users")
-      .doc(userUID)
-      .collection("videos")
-      .doc(idVideo)
-      .collection("chat");
-
     const observer = {
       next: (querySnapshot) => {
         let promises = [];
 
-        promises.push(
-          new Promise((res) => {
-            querySnapshot.docs.map((docSnapshot) => {
+        querySnapshot.docs.map((docSnapshot) => {
+          promises.push(
+            new Promise((res, rej) => {
               return chatRef
                 .doc(docSnapshot.id)
                 .collection("comments")
@@ -35,6 +37,8 @@ export default function ({ idVideo, userUID }) {
                       });
                     });
 
+                    console.log(messages);
+
                     // Horrible
                     if (promises === "finished") {
                       setChanges((previous) => !previous);
@@ -43,9 +47,9 @@ export default function ({ idVideo, userUID }) {
                     }
                   },
                 });
-            });
-          })
-        );
+            })
+          );
+        });
 
         Promise.all(promises).then((messages) => {
           if (promises !== "finished") {
@@ -59,6 +63,33 @@ export default function ({ idVideo, userUID }) {
     return unsubSnapshot;
   }, [changes]);
 
+  function editMessage(messageID, data) {
+    console.log(data)
+    firestore
+      .collection("users")
+      .doc(ownerVideoUID)
+      .collection("videos")
+      .doc(idVideo)
+      .collection("chat")
+      .doc(currentUser.uid)
+      .collection("comments")
+      .doc(messageID)
+      .update(data);
+  }
+
+  function removeMessage(messageID) {
+    firestore
+      .collection("users")
+      .doc(ownerVideoUID)
+      .collection("videos")
+      .doc(idVideo)
+      .collection("chat")
+      .doc(currentUser.uid)
+      .collection("comments")
+      .doc(messageID)
+      .delete();
+  }
+
   function writeMessage(data) {
     const { name, photo, message } = data;
     const createdAt = firebase.firestore.FieldValue.serverTimestamp();
@@ -66,19 +97,19 @@ export default function ({ idVideo, userUID }) {
     if (Boolean(name) && Boolean(photo) && Boolean(message)) {
       const chatUserRef = firestore
         .collection("users")
-        .doc(userUID)
+        .doc(ownerVideoUID)
         .collection("videos")
         .doc(idVideo)
         .collection("chat")
-        .doc(userUID);
+        .doc(currentUser.uid);
 
-      return chatUserRef.get().then(() => {
-        return chatUserRef.set({ createdAt }).then(() => {
-          return chatUserRef.collection("comments").add({ ...data, createdAt });
-        });
+      return chatUserRef.set({ createdAt }).then(() => {
+        return chatUserRef.collection("comments").add({ ...data, createdAt });
       });
     }
+
+    return Promise.resolve();
   }
 
-  return { messages, writeMessage };
+  return { messages, writeMessage, removeMessage, editMessage };
 }

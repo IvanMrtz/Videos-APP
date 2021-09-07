@@ -7,19 +7,22 @@ import PrivateRoute from "./PrivateRoute";
 import Profile from "./Profile";
 import React from "react";
 import Video from "./Video";
+import FormVideoProvider from "../context/form-video-context";
 
 function App() {
   return (
     <Router>
       <UserProvider>
-        <Switch>
-          <PrivateRoute path="/" exact component={Main} />
-          <Route path="/profile/:uid" exact component={Profile} />
-          <Route path="/video/:id" exact component={Video} />
-          <Route path="/auth" exact component={MainAuth} />
-          <Route path="/error" exact component={VideoNotFound} />
-          <Route path="*" exact component={RouteNotFound} />
-        </Switch>
+        <FormVideoProvider>
+          <Switch>
+            <PrivateRoute path="/" exact component={Main} />
+            <Route path="/profile/:uid" exact component={Profile} />
+            <Route path="/video/:id" exact component={Video} />
+            <Route path="/auth" exact component={MainAuth} />
+            <Route path="/error" exact component={VideoNotFound} />
+            <Route path="*" exact component={RouteNotFound} />
+          </Switch>
+        </FormVideoProvider>
       </UserProvider>
     </Router>
   );

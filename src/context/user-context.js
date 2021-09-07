@@ -16,14 +16,15 @@ export const UserProvider = ({ children }) => {
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       const pathName = history.location.pathname;
+      
       if (user) {
         setCurrentUser(user);
-        if (pathName == "/") {
+        if (pathName == "/auth") {
           history.push("/");
         }
       } else {
-        setCurrentUser(user);
-        if (pathName == "/auth") {
+        setCurrentUser(null);
+        if (pathName != "/auth") {
           history.push("/auth");
         }
       }

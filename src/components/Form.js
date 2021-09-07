@@ -8,7 +8,7 @@ export default function Form(props) {
   useEffect(() => {
     statex.setInputs((state) => ({ ...state, inputs, setInputs }));
   }, [inputs]);
-  console.log(inputs)
+
   return (
     <>
       <div className="Form-Input-Div">

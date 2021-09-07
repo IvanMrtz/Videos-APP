@@ -1,14 +1,28 @@
 import { Icon } from "@iconify/react";
-import { useContext, useReducer, useState } from "react";
+import {
+  forwardRef,
+  useCallback,
+  useContext,
+  useEffect,
+  useReducer,
+  useRef,
+  useState,
+} from "react";
 import userContext from "../context/user-context";
 import useForm from "../hooks/useForm";
 import useUser from "../hooks/useUser";
 import reducerFormAccountSettings from "../reducers/reducerFormAccountSettings";
 import Circle from "./Circle";
+import Videos from "./VideoContainer";
 import ProfileImage from "./ProfileImage";
 import "../styles/Profile.css";
 import "../styles/FormAccountSettings.css";
 import useAuth from "../Auth/hooks/useAuth";
+import Media from "./MediaQuery";
+import useFirestore from "../hooks/useFirestore";
+import { VideoProfileContainer } from "./VideoContainer";
+import firebase from "firebase";
+import { firestore } from "../firebase/config";
 
 export function AccountSettings(props) {
   const { submit, error } = useForm();
@@ -164,27 +178,168 @@ export function AccountSettings(props) {
   );
 }
 
-export function Details({ uid }) {
-  const dataProfile = useUser(uid).consume;
-  const detailsRequired = ["friends", "peopleHelped", "age"];
+export function OwnerVideos(props) {
+  const { children, setOwnerVideos, uid } = props;
+  const { read } = useFirestore();
 
-  return detailsRequired.map((detail) => {
-    const valueDetail = dataProfile[detail];
+  useEffect(() => {
+    const unsubSnapshot = read(
+      {
+        next: (querySnapshot) => {
+          console.log("Rendering owner video/s...");
 
-    return (
-      <div key={detail} className="d-flex flex-column">
-        <div className="d-flex justify-content-around">
-          <p className="grey-lower">
-            {detail.replace(/[a-z]{1}[A-Z]{1}/, (finded) => {
-              return finded[0] + " " + finded[1].toLowerCase();
-            })}
-          </p>
-          <p className="linked">{String(valueDetail)}</p>
-        </div>
-        <hr style={{ height: "1px", width: "100%" }} />
-      </div>
+          const updatedVideos = querySnapshot.docs.map((docSnapshot) => {
+            return Object.assign(docSnapshot.data());
+          });
+
+          setOwnerVideos(updatedVideos);
+        },
+      },
+      uid
     );
-  });
+
+    return unsubSnapshot;
+  }, []);
+
+  return children;
+}
+
+const PublicDetails = forwardRef(function (props, ref) {
+  const { uid } = props;
+  const { subscribers, age } = useUser(uid).consume;
+
+  return (
+    <div ref={ref} className="Public-Details">
+      <div className="Public-Detail">
+        <p className="grey-lower">Subscribers: </p>
+        <p className="linked">{subscribers?.count || "-"}</p>
+      </div>
+      <hr style={{ height: "1px", width: "100%" }} />
+      <div className="Public-Detail">
+        <p className="grey-lower">Age: </p>
+        <p className="linked">{age || "-"}</p>
+      </div>
+      <hr style={{ height: "1px", width: "100%" }} />
+    </div>
+  );
+});
+
+export { PublicDetails };
+
+export function UserDetails(props) {
+  const { currentUser } = useContext(userContext);
+  const { displayName, email, profileCoverRef, profileInfoRef, ownerUID } =
+    props;
+  const profileDetailsRef = useRef();
+  const { consume } = useUser(ownerUID);
+  const { subscribers } = consume;
+  const [subscribeColor, setSubscribeColor] = useState(
+    "var(--color-grey-lower)"
+  );
+  const [subscribeText, setSubscribeText] = useState("Subscribe");
+  const isSubscribed = useCallback(() => {
+    if (subscribers) {
+      return subscribers.users.find((user) => user.userUID === currentUser.uid);
+    }
+  }, [subscribers]);
+
+  useEffect(() => {
+    if (subscribers) {
+      if (!isSubscribed()) {
+        setSubscribeColor("var(--color-grey-lower)");
+        setSubscribeText("Subscribe");
+      } else {
+        setSubscribeColor("var(--color-linked)");
+        setSubscribeText("Unsubscribe");
+      }
+    }
+  }, [subscribers]);
+
+  const subscribe = useCallback(() => {
+    if (currentUser) {
+      if (subscribers) {
+        if (currentUser.emailVerified) {
+          const timestamp =
+            firebase.default.firestore.FieldValue.serverTimestamp();
+          const subscribersRef = firestore
+            .collection("users")
+            .doc(ownerUID)
+            .collection("subscribers")
+            .doc(currentUser.uid);
+
+          if (!isSubscribed()) {
+            subscribersRef.set({ createdAt: timestamp });
+          } else {
+            subscribersRef.delete();
+          }
+        }
+      }
+    }
+  }, [subscribers, currentUser]);
+
+  useEffect(() => {
+    const profileCover = profileCoverRef?.current;
+    const profileInfo = profileInfoRef?.current;
+    const profileDetails = profileDetailsRef?.current;
+
+    if (profileCover && profileInfo) {
+      function resize() {
+        const profileCoverHeight = profileCover.getBoundingClientRect().height;
+        const photo = profileInfo.querySelector(".user-img");
+        const photoHeight = photo.clientHeight;
+
+        profileInfo.style.top = `${profileCoverHeight - photoHeight / 2}px`;
+        profileDetails.style.top = `${profileCoverHeight + photoHeight / 6}px`;
+      }
+
+      window.addEventListener("resize", resize);
+      resize();
+
+      return () => {
+        window.removeEventListener("resize", resize);
+      };
+    }
+  }, [
+    profileCoverRef.current,
+    profileInfoRef.current,
+    profileDetailsRef.current,
+  ]);
+
+  return (
+    <Media
+      query="(max-width: 380px)"
+      render={(match) => {
+        return (
+          <div ref={profileDetailsRef} className="User-Details">
+            <h2 className="grey">{displayName}</h2>
+            <h6 className="grey-lower">{email}</h6>
+            <div className="User-Secondary-Details">
+              <div className="User-Secondary-Detail">
+                <Icon icon="akar-icons:location" />
+                <p>Argentina.</p>
+              </div>
+            </div>
+            <div className="User-Follows">
+              <button
+                id="Icon-Button-Animation"
+                className="default-button default-button-animation"
+                style={{ background: "var(--color-grey-lower)" }}
+              >
+                {match ? <Icon icon="akar-icons:person-add" /> : "Add Friend"}
+              </button>
+              <button
+                onClick={() => subscribe()}
+                className="default-button default-button-animation"
+                style={{ background: subscribeColor }}
+              >
+                {subscribeText}
+              </button>
+            </div>
+          </div>
+        );
+      }}
+    />
+  );
 }
 
 export default function Profile(props) {
@@ -192,83 +347,105 @@ export default function Profile(props) {
   const { currentUser } = useContext(userContext);
   const { photoURL, displayName, email } = useUser(uid).consume;
   const provide = useUser(uid).provide;
+  const profileCoverRef = useRef();
+  const profileInfoRef = useRef();
+  const profileDetailsRef = useRef();
+  const profileImageRef = useRef();
+  const [ownerVideos, setOwnerVideos] = useState();
+  const userDetails = (
+    <UserDetails
+      profileCoverRef={profileCoverRef}
+      profileInfoRef={profileInfoRef}
+      displayName={displayName}
+      email={email}
+      ownerUID={uid}
+    />
+  );
 
   return (
-    <div className="Profile">
-      <div
-        className="Profile-Cover"
-        style={{
-          backgroundImage:
-            "url('https://images.unsplash.com/photo-1593642531955-b62e17bdaa9c?ixid=MnwxMjA3fDF8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80')",
-        }}
-      >
-        {currentUser.uid === uid ? (
-          <div className="Change-Cover">
-            <Icon width="70%" icon="bx:bxs-camera" />
-            <p>Change Cover</p>
-          </div>
-        ) : (
-          <div className="Social-Interactions">
-            <button
-              className="default-button default-button-animation"
-              onClick={() => {
-                
-              }}
-            >
-              Subscribe
-            </button>
-            <div className="Send-Friend-Request">
-              <Icon
-                height="100%"
-                width="10%"
-                icon="ant-design:user-add-outlined"
-              />
-              <p>Send friend request</p>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="Profile-Container">
-        <div className="Profile-Info">
-          <div className="Profile-Principal-Info">
-            <div style={{ position: "relative" }}>
-              <ProfileImage image={photoURL} width="110px" />
-
-              <input
-                accept="image/*"
-                onChange={(event) => {
-                  if (currentUser.emailVerified) {
-                    const reader = new FileReader();
-
-                    reader.onload = function () {
-                      provide({ photoURL: reader.result });
-                    };
-
-                    reader.readAsDataURL(event.target.files[0]);
-                  }
+    <>
+      <Media
+        query="(max-width: 500px)"
+        render={(match) => {
+          return (
+            <div className="Profile">
+              <div
+                className="Profile-Cover"
+                ref={profileCoverRef}
+                style={{
+                  backgroundImage:
+                    "url('https://images.unsplash.com/photo-1593642531955-b62e17bdaa9c?ixid=MnwxMjA3fDF8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80')",
                 }}
-                id="photoInput"
-                type="file"
-                hidden
-              />
-              <label className="Camera-Input">
+              ></div>
+
+              <div className="Profile-Container">
+                <div ref={profileInfoRef} className="Profile-Info">
+                  <ProfileImage
+                    ref={profileImageRef}
+                    image={photoURL}
+                    width="200px"
+                    height="200px"
+                  />
+
+                  <input
+                    accept="image/*"
+                    onChange={(event) => {
+                      if (currentUser.emailVerified) {
+                        const reader = new FileReader();
+
+                        reader.onload = function () {
+                          provide({ photoURL: reader.result });
+                        };
+
+                        reader.readAsDataURL(event.target.files[0]);
+                      }
+                    }}
+                    id="photoInput"
+                    type="file"
+                    hidden
+                  />
+
+                  <div className="Profile-Details">
+                    {match ? userDetails : null}
+                    <hr style={{ height: "1px", width: "100%" }} />
+                    <PublicDetails ref={profileDetailsRef} uid={uid} />
+
+                    <OwnerVideos uid={uid} setOwnerVideos={setOwnerVideos}>
+                      <VideoProfileContainer
+                        profileImageRef={profileImageRef}
+                        profileDetailsRef={profileDetailsRef}
+                      >
+                        <Videos ownerUID={uid} videos={ownerVideos} />
+                      </VideoProfileContainer>
+                    </OwnerVideos>
+                  </div>
+                </div>
+                {/* <AccountSettings provide={provide} /> */}
+              </div>
+              {!match ? userDetails : null}
+            </div>
+          );
+        }}
+      />
+    </>
+  );
+}
+{
+  /* <div style={{ position: "relative" }}> */
+}
+
+{
+  /* <label className="Camera-Input">
                 <Circle htmlFor="photoInput" width="30px" background="grey">
                   <Icon width="70%" icon="bx:bxs-camera" />
                 </Circle>
-              </label>
-            </div>
+              </label> */
+}
+{
+  /* </div> */
+}
 
-            <h3 className="grey">{displayName}</h3>
-            <p className="grey-lower">{email}</p>
-          </div>
-          <div className="Profile-Details">
-            <hr style={{ height: "1px", width: "100%" }} />
-            <Details uid={uid} />
-          </div>
-        </div>
-        <AccountSettings provide={provide} />
-      </div>
-    </div>
-  );
+{
+  /* <h3 className="grey">{displayName}</h3>
+            <p className="grey-lower">{email}</p> */
 }

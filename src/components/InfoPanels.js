@@ -1,12 +1,9 @@
 import InfoUserPanel from "./InfoUserPanel";
 import InfoChallengesPanel from "./InfoChallengesPanel";
-import { useContext } from "react";
-import { sectionContext } from "./Main";
 import Media from "./MediaQuery";
 
 export default function (props) {
-  const { setStateFormVideo, mobile, setMobile, videosContainer } = props;
-  const { section } = useContext(sectionContext);
+  const { setVideos, mobile, setMobile, videosContainer } = props;
 
   return (
     <Media
@@ -40,7 +37,7 @@ export default function (props) {
                 styleInfoPanelContainer.height = "200px";
               }, match);
 
-              changeStyles(()=>{
+              changeStyles(() => {
                 setMobile(false);
               }, match);
 
@@ -61,17 +58,13 @@ export default function (props) {
               return (
                 <div style={styleInfoPanelContainer}>
                   <div style={styleInfoUserPanelContainer}>
-                    <h2 className="grey">
-                      {section == "MyVideos"
-                        ? "Your videos"
-                        : "Comunity videos"}
-                    </h2>
+                    <h2 className="grey">Comunity videos</h2>
                     <InfoUserPanel />
                   </div>
 
-                  <InfoChallengesPanel setStateFormVideo={setStateFormVideo} />
+                  <InfoChallengesPanel setVideos={setVideos} />
 
-                  { mobile ? videosContainer : null }
+                  {mobile ? videosContainer : null}
                 </div>
               );
             }}

@@ -1,6 +1,5 @@
 .Video-Container {
   height: 100%;
-  overflow: scroll;
   margin-top: 20px;
 }
 
@@ -17,6 +16,7 @@
   display: flex;
   justify-content: space-evenly;
   align-items: center;
+  width: 200px;
 }
 
 .Video-Bottom {
@@ -34,7 +34,7 @@
 .Video-Follows {
   display: flex;
   justify-content: space-between;
-  width: 30%;
+  width: 250px;
 }
 
 .Video-Chat-Container {
@@ -58,34 +58,16 @@
   font-size: 25px;
 }
 
-.Video-Comment-Container {
-  display: flex;
-  width: 100%;
-  align-items: flex-start;
-  justify-content: space-evenly;
-  margin-bottom: 20px;
-}
-
-.Video-Comment-Content {
+.Video-Chat-Bottom {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  width: 200px;
+  width: 100%;
+  align-items: center;
 }
 
-.Video-Comment-Name {
-  color: var(--color-grey);
-}
-
-.Video-Comment-Text {
-  font-size: 13px;
-  text-align: left;
-  color: var(--color-grey-lower);
-}
-
-.Video-Chat-Bottom {
+.Video-Write-Message {
   background: var(--color-grey-background-lower);
-  width: 91%;
+  width: 95%;
   height: 40px;
   border-radius: 15px;
   display: flex;
@@ -93,29 +75,35 @@
   justify-content: space-between;
 }
 
-.Video-Chat-Bottom > * {
+.Video-Write-Message > * {
   margin-inline: 3%;
 }
 
-.Video-Comment-Top {
-  align-items: center;
+.Video-Chat-Reply {
   display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.Video-Comment-Date {
-  margin-left: 10px;
-  font-size: 10px;
-  transition: all 1s;
+.Video-Chat-Reply > * {
+  margin-inline: 25px;
 }
 
-.Video-Comment-Date:hover {
+.Video-Chat-Reply p {
+  color: var(--color-grey-lower);
+  font-size: 13px;
+}
+
+.Video-Chat-Reply svg {
+  color: var(--color-grey-lower);
+}
+
+.Video-Chat-Reply svg:hover {
   color: var(--color-linked);
 }
 
 .Video-Chat-Input {
-  background: none;
-  border: none;
-  outline: none;
   color: var(--color-grey);
   text-overflow: ellipsis;
   overflow: hidden;
@@ -205,7 +193,7 @@
 .Video-Element {
   width: 100%;
   height: 100%;
-  border-radius: 25px;
+  border-radius: 10px;
   outline: none;
 }
 
@@ -213,11 +201,17 @@
   width: 60%;
 }
 
+.Video-Comment-Options:hover {
+  color: var(--color-linked);
+}
+
 @media (max-width: 850px) {
   .Video {
     width: 100%;
   }
-
+  .Video-Profile {
+    width: 150px;
+  }
   #Divison-Line-Chat {
     display: block;
   }
@@ -233,27 +227,23 @@
     width: 100%;
   }
 
+  .Video-Element {
+    border-radius: 0px 0px 10px 10px;
+  }
+
+  .Video-Container {
+    margin-top: 0px;
+  }
+
   .Video-Chat-Top {
     display: none;
-  }
-
-  .Video-Comment-Container {
-    justify-content: flex-start;
-  }
-
-  .Video-Comment-Container > * {
-    margin-left: 5%;
-  }
-
-  .Video-Comment-Container img {
-    width: 8%;
   }
 }
 
 @media (max-width: 380px) {
   #Icon-Button-Animation {
-    width: 30px;
-    height: 30px;
+    width: 35px;
+    height: 35px;
     border-radius: 50%;
   }
 
@@ -274,9 +264,5 @@
 
   .Video-Description {
     font-size: 13px;
-  }
-
-  .Video-Comment-Container img {
-    width: 15%;
   }
 }

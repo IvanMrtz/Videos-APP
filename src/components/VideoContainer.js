@@ -1,32 +1,55 @@
 import "../styles/VideoContainer.css";
-import { memo, useContext } from "react";
+import { memo, useContext, useEffect, useRef } from "react";
 import PreviewVideo from "./PreviewVideo";
 import Scroll from "./Scroll";
-import { sectionContext, videosContext } from "./Main";
 import Media from "./MediaQuery";
+import { useLocation } from "react-router-dom";
+import userContext from "../context/user-context";
 
-export default memo(function ({ setStateFormVideo, setInputs }) {
-  const { videos } = useContext(videosContext);
-  const { section } = useContext(sectionContext);
+export function VideoProfileContainer(props) {
+  const { children, profileDetailsRef, profileImageRef } = props;
+  const videosProfileRef = useRef();
 
-  if (typeof videos === "undefined" || videos === null) {
-    return <h3 className="waiting linked">Wait...</h3>;
-  }
+  useEffect(() => {
+    const videosProfile = videosProfileRef?.current;
+    const profileDetails = profileDetailsRef?.current;
+    const profileImage = profileImageRef?.current;
 
-  if (!videos.length) {
-    return (
-      <div className="Empty-Container">
-        <div className="d-flex justify-content-center">
-          <img src="undraw_empty_xct9.svg" alt="" />
-        </div>
-        <p className="text-center grey-lower">
-          {section === "MyVideos"
-            ? "You don't currently have any video"
-            : "No existing videos, be the first to create one!"}
-        </p>
-      </div>
-    );
-  }
+    if (videosProfile && profileDetails && profileImage) {
+      function resize() {
+        const profileDetailsHeight =
+          profileDetails.getBoundingClientRect().height;
+        const profileImageHeight = profileImage.getBoundingClientRect().height;
+        const videosProfileHeight =
+          videosProfile.getBoundingClientRect().height;
+        console.log(profileDetailsHeight);
+        videosProfile.style.top = `${
+          profileDetailsHeight + 170 + profileImageHeight
+        }px`;
+      }
+
+      window.addEventListener("resize", resize);
+      resize();
+
+      return () => {
+        window.removeEventListener("resize", resize);
+      };
+    }
+  }, [
+    videosProfileRef.current,
+    profileDetailsRef.current,
+    profileImageRef.current,
+  ]);
+
+  return (
+    <div ref={videosProfileRef} className="Videos-Profile-Container">
+      {children}
+    </div>
+  );
+}
+
+export function VideoMainContainer(props) {
+  const { children } = props;
 
   return (
     <Media
@@ -57,30 +80,14 @@ export default memo(function ({ setStateFormVideo, setInputs }) {
                 styleVideoContainer.height = "auto";
               }, match2);
 
-              const videosMap = videos.map((video) => {
-                if (video.active) {
-                  return (
-                    <PreviewVideo
-                      key={video.idVideo}
-                      setInputs={setInputs}
-                      setStateFormVideo={setStateFormVideo}
-                      views={3}
-                      {...video}
-                    />
-                  );
-                } else {
-                  return null;
-                }
-              });
-
               return (
                 <>
                   {match ? (
-                    <Scroll className="Videos-Container" distance="30px">
-                      {videosMap}
+                    <Scroll className="Videos-Main-Container" distance="30px">
+                      {children}
                     </Scroll>
                   ) : (
-                    <div style={styleVideoContainer}>{videosMap}</div>
+                    <div style={styleVideoContainer}>{children}</div>
                   )}
                 </>
               );
@@ -90,4 +97,45 @@ export default memo(function ({ setStateFormVideo, setInputs }) {
       }}
     />
   );
+}
+
+export default memo(function (props) {
+  const { videos, ownerUID } = props;
+  const { pathname } = useLocation();
+  const isProfileScreen = pathname.match(/profile/);
+  const { currentUser } = useContext(userContext);
+  const emptyContainerStyle = {
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-evenly",
+    height: isProfileScreen ? "100px" : "400px",
+    width: "100%",
+  };
+
+  if (!videos?.length) {
+    return (
+      <div className="Empty-Container" style={emptyContainerStyle}>
+        <div className="d-flex justify-content-center">
+          {!isProfileScreen ? (
+            <img width="350" src="undraw_empty_xct9.svg" alt="" />
+          ) : null}
+        </div>
+        <p className="text-center grey-lower">
+          {isProfileScreen
+            ? ownerUID === currentUser.uid
+              ? "You don't currently have any video"
+              : "This user has no content"
+            : "No existing videos, be the first to create one!"}
+        </p>
+      </div>
+    );
+  }
+
+  return videos.map((video) => {
+    if (video.active || typeof video.active === "undefined") {
+      return <PreviewVideo key={video.idVideo} views={3} {...video} />;
+    } else {
+      return null;
+    }
+  });
 });

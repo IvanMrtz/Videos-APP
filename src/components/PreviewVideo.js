@@ -4,31 +4,34 @@ import { memo } from "react";
 import "../styles/PreviewVideo.css";
 import Thumbnail from "./Thumbnail";
 import { useState, useContext } from "react";
-import { sectionContext } from "./Main";
-import { Link } from "react-router-dom";
+import {
+  inputsContext,
+  stateFormVideoContext,
+} from "../context/form-video-context";
+import { Link, useLocation } from "react-router-dom";
+import userContext from "../context/user-context";
 
 export default memo(function PreviewVideo(props) {
   const { remove } = useFirestore("users");
-  const {
-    title,
-    color,
-    category,
-    idVideo,
-    views,
-    userUID,
-    setStateFormVideo,
-    setInputs,
-  } = props;
+  const { title, color, category, idVideo, views, userUID } = props;
   const [data, setData] = useState({ thumbnail: null });
-  const { section } = useContext(sectionContext);
+  const { setStateFormVideo } = useContext(stateFormVideoContext);
+  const { setInputs } = useContext(inputsContext);
+  const { currentUser } = useContext(userContext);
+  const { pathname } = useLocation();
+  const isProfileScreen = pathname.match(/profile/);
 
   return (
     <div className="Preview-Video" style={{ border: `1px solid ${color}` }}>
       <Link
+        replace
+        style={{
+          color: "var(--color-grey)",
+        }}
         to={{
-          pathname: "video/" + idVideo,
+          pathname: "/video/" + idVideo,
           state: {
-            userUID
+            userUID,
           },
         }}
       >
@@ -44,7 +47,7 @@ export default memo(function PreviewVideo(props) {
 
         <div className="Video-Actions">
           <div className="left">
-            {section === "MyVideos" ? (
+            {currentUser.uid === userUID && isProfileScreen ? (
               <>
                 <Icon onClick={() => remove(props)} icon="carbon:delete" />
                 <Icon
