@@ -1,0 +1,7 @@
+.Level {
+  position: absolute;
+  left: 10px;
+  margin-bottom: 25px;
+  color: var(--color-grey);
+  font-size: 13px;
+}

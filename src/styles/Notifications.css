@@ -1,0 +1,56 @@
+.Notifications {
+  position: relative;
+}
+
+.Notification-Icon {
+  position: absolute;
+  right: -12px;
+  top: -12px;
+}
+
+.Notifications svg:hover {
+  color: var(--color-linked);
+}
+
+.Notification-Title {
+  display: flex;
+  justify-content: space-between;
+  margin-inline: 20px;
+  margin-top: 10px;
+}
+
+.Notification {
+  display: flex;
+  align-items: center;
+  text-align: left;
+  color: var(--color-grey-lower);
+  justify-content: space-evenly;
+  width: 100%;
+}
+
+.Notification-Body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.Notification-Type {
+  font-size: 12px;
+}
+
+.Notification-Manage {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.Notification-Nothing {
+  justify-content: space-evenly;
+  height: 100%;
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  color: var(--color-grey-lower);
+}

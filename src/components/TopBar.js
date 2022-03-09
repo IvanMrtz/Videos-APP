@@ -4,6 +4,7 @@ import ProfileImage from "./ProfileImage";
 import Logo from "./Logo";
 import userContext from "../context/user-context";
 import { useContext } from "react";
+import Notifications from "./Notifications";
 
 export default function (props) {
   const { setSideMenu, videos, setVideos } = props;
@@ -13,7 +14,8 @@ export default function (props) {
   return (
     <div className="Top-Nav-Bar">
       <Logo />
-      <Search setVideos={setVideos} />
+      <Search setVideos={setVideos} videos = {videos} />
+      <Notifications />
       <ProfileImage
         action={setSideMenu}
         width="50"

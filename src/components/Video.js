@@ -1,4 +1,11 @@
-import { useEffect, useState, useContext, useRef, useCallback } from "react";
+import {
+  useEffect,
+  useState,
+  useContext,
+  useRef,
+  useCallback,
+  memo,
+} from "react";
 import userContext from "../context/user-context";
 import useStorage from "../hooks/useStorage";
 import "../styles/Video.css";
@@ -13,6 +20,8 @@ import Media from "./MediaQuery";
 import { useHistory, useLocation, useParams } from "react-router-dom";
 import firebase from "firebase";
 import { Message } from "./Message";
+import concatDocs from "../utilities/ConcatDocs/concatDocs";
+import { firestore } from "../firebase/config";
 
 const loadingContainerVariants = {
   start: {
@@ -42,10 +51,13 @@ const loadingCircleTransition = {
   ease: "easeInOut",
 };
 
-export function VideoChat({ idVideo, ownerVideoUID }) {
+const VideoChat = memo(({ idVideo, ownerVideoUID }) => {
   const { userData, currentUser } = useContext(userContext);
   const { photoURL, displayName } = userData;
-  const { messages, writeMessage } = useMessage({ idVideo, ownerVideoUID });
+  const { messages, writeMessage, setMessages } = useMessage({
+    idVideo,
+    ownerVideoUID,
+  });
   const inputMessage = useRef(null);
   const sendRef = useRef(null);
   const autoScroll = useRef(null);
@@ -66,6 +78,62 @@ export function VideoChat({ idVideo, ownerVideoUID }) {
       autoScroll.current.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  const chatRef = firestore
+    .collection("users")
+    .doc(ownerVideoUID)
+    .collection("videos")
+    .doc(idVideo)
+    .collection("chat");
+
+  useEffect(() => {
+    function loadComments(querySnapshot) {
+      let userPromises = [];
+      querySnapshot.docs.map((docSnapshot) => {
+        userPromises.push(
+          new Promise((res, rej) => {
+            chatRef
+              .doc(docSnapshot.id)
+              .collection("comments")
+              .orderBy("createdAt")
+              .get()
+              .then((snapshot) => {
+                return Promise.all(
+                  snapshot.docs.map((docSnapshot) => {
+                    const snapshotData = docSnapshot.data();
+
+                    return { ...snapshotData, ...{ id: docSnapshot.id } };
+                  })
+                );
+              })
+              .then((userMessages) => {
+                res(userMessages);
+              });
+          })
+        );
+        Promise.all(userPromises).then((entryMessages) => {
+          setMessages(concatDocs(entryMessages));
+        });
+      });
+    }
+
+    const observer = {
+      next: () => {
+        chatRef.get().then((snapshot) => {
+          loadComments(snapshot);
+        });
+      },
+    };
+
+    // const unsubSnapshot = chatRef.onSnapshot(observer);
+
+    chatRef.get().then((snapshot) => {
+      snapshot.docs.map((docSnapshot) => {
+        chatRef.doc(docSnapshot.id).collection("comments").onSnapshot(observer);
+      });
+    });
+    // return unsubSnapshot;
+  }, []);
+
   return (
     <div className="Video-Chat-Container">
       <hr
@@ -80,18 +148,22 @@ export function VideoChat({ idVideo, ownerVideoUID }) {
 
       <Scroll className="Video-Comments" distance="10px">
         {messages.length
-          ? messages.map((message) => {
-              return (
-                <Message
-                  currentReply={currentReply}
-                  setCurrentReply={setCurrentReply}
-                  idVideo={idVideo}
-                  ownerVideoUID={ownerVideoUID}
-                  key={message.id}
-                  {...message}
-                />
-              );
-            })
+          ? messages
+              .sort(({ createdAt: a }, { createdAt: b }) => {
+                return a.seconds - b.seconds
+              })
+              .map((message) => {
+                return (
+                  <Message
+                    currentReply={currentReply}
+                    setCurrentReply={setCurrentReply}
+                    idVideo={idVideo}
+                    ownerVideoUID={ownerVideoUID}
+                    key={message.id}
+                    {...message}
+                  />
+                );
+              })
           : null}
         <div ref={autoScroll}></div>
       </Scroll>
@@ -143,7 +215,9 @@ export function VideoChat({ idVideo, ownerVideoUID }) {
       </div>
     </div>
   );
-}
+});
+
+export { VideoChat };
 
 // see: https://overreacted.io/a-complete-guide-to-useeffect/
 export default function () {
@@ -269,7 +343,6 @@ export default function () {
       }
     }
   }, [currentUser, views]);
-
   return (
     <Media
       query="(min-width: 380px)"

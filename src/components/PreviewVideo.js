@@ -73,7 +73,7 @@ export default memo(function PreviewVideo(props) {
             ) : (
               <div className="Video-Views">
                 <Icon icon="carbon:view" />
-                <p className="grey small">{views.count}</p>
+                <p className="grey small">{views?.count ?? 0}</p>
               </div>
             )}
           </div>

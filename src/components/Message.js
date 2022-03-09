@@ -1,10 +1,11 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useContext } from "react";
 import { withRouter } from "react-router";
 import useMessage from "../hooks/useMessage";
 import Options, { Option } from "./Options";
 import ProfileImage from "./ProfileImage";
 import { Icon } from "@iconify/react";
 import "../styles/Message.css";
+import userContext from "../context/user-context";
 
 export const Message = withRouter(function (props) {
   let {
@@ -26,6 +27,7 @@ export const Message = withRouter(function (props) {
     idVideo,
     ownerVideoUID,
   });
+  const { currentUser } = useContext(userContext);
   const [editMode, setEditMode] = useState(false);
   const inputEditMessageRef = useRef();
   const [newMessage, setNewMessage] = useState(message);
@@ -54,7 +56,7 @@ export const Message = withRouter(function (props) {
       inputEditMessage.addEventListener("keydown", enter);
 
       return () => {
-        inputEditMessage.addEventListener("keydown", enter);
+        inputEditMessage.removeEventListener("keydown", enter);
       };
     }
   }, [inputEditMessage, newMessage]);
@@ -144,24 +146,30 @@ export const Message = withRouter(function (props) {
               >
                 Reply
               </Option>
-              <Option
-                fire={() => {
-                  setEditMode(true);
-                }}
-                className="Option"
-                closeOnFire={true}
-              >
-                Edit
-              </Option>
-              <Option
-                fire={() => {
-                  removeMessage(id);
-                }}
-                className="Option"
-                closeOnFire={true}
-              >
-                Remove
-              </Option>
+              {currentUser.uid === userUID ? (
+                <>
+                  <Option
+                    fire={() => {
+                      setEditMode(true);
+                    }}
+                    className="Option"
+                    closeOnFire={true}
+                  >
+                    Edit
+                  </Option>
+                  <Option
+                    fire={() => {
+                      removeMessage(id);
+                    }}
+                    className="Option"
+                    closeOnFire={true}
+                  >
+                    Remove
+                  </Option>
+                </>
+              ) : (
+                ""
+              )}
             </Options>
           </div>
           {editMode ? (
@@ -169,7 +177,6 @@ export const Message = withRouter(function (props) {
               value={newMessage}
               ref={inputEditMessageRef}
               onChange={(event) => {
-                console.log(event.target.value);
                 setNewMessage(event.target.value);
               }}
               className="Video-Comment-Text clean-input"

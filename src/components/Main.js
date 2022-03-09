@@ -6,7 +6,7 @@ import SideMenu from "./SideMenu";
 import Videos from "./VideoContainer";
 import { VideoMainContainer } from "./VideoContainer";
 import TopBar from "./TopBar";
-import Friends from "./Friends";
+import FriendContainer, { Friends } from "./Friends";
 import "../styles/Main.css";
 import userContext from "../context/user-context";
 import Popup from "./Popup";
@@ -153,7 +153,7 @@ export function Main() {
                       <Media
                         query="(min-width: 850px)"
                         render={(match) => {
-                          return <>{match ? <Friends /> : null}</>;
+                          return <FriendContainer>{match ? <Friends /> : null}</FriendContainer>;
                         }}
                       />
                     </div>

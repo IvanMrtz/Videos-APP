@@ -7,8 +7,7 @@ export default function (user) {
       user = user.uid;
     }
   }
-
-  const [data, setData] = useState({});
+  const [data = {}, setData] = useState({});
   const [subscribers, setSubscribers] = useState({});
   const [updatedData, setUpdatedData] = useState();
   const finalData = Object.assign(data, subscribers);
@@ -20,8 +19,10 @@ export default function (user) {
         next: function (snapshot) {
           setData(snapshot.data());
         },
+        error: function (error) {
+          console.log(error);
+        },
       });
-
       const unsubSnapshotSubscibers = refUser
         .collection("subscribers")
         .onSnapshot({

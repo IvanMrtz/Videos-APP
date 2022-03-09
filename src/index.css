@@ -21,7 +21,8 @@ body {
   --color-grey-background: #151a21;
   --color-grey-background-lower: #242a33;
   --color-white: rgb(212, 212, 212);
-  --color-error: rgb(255, 136, 136);
+  --color-green: rgb(113, 255, 113);
+  --color-red: rgb(255, 136, 136);
   --color-grey: rgb(173, 173, 173);
   --color-grey-lower: rgba(239, 255, 236, 0.26);
   --color-grey-background-ligth: #1c2025;
@@ -76,8 +77,22 @@ img {
   cursor: pointer;
 }
 
-.error {
-  color: var(--color-error);
+.line-completed {
+  margin-bottom: 20px;
+  color: var(--color-grey);
+  width: 100%;
+  margin-inline: auto;
+}
+
+.line-semi-completed {
+  margin-bottom: 20px;
+  color: var(--color-grey);
+  width: 85%;
+  margin-inline: auto;
+}
+
+.red {
+  color: var(--color-red);
 }
 
 .linked {
@@ -89,6 +104,10 @@ img {
 
 .white {
   color: var(--color-white);
+}
+
+.green {
+  color: var(--color-green);
 }
 
 .grey-background-ligth {

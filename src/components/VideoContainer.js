@@ -22,7 +22,6 @@ export function VideoProfileContainer(props) {
         const profileImageHeight = profileImage.getBoundingClientRect().height;
         const videosProfileHeight =
           videosProfile.getBoundingClientRect().height;
-        console.log(profileDetailsHeight);
         videosProfile.style.top = `${
           profileDetailsHeight + 170 + profileImageHeight
         }px`;
@@ -122,7 +121,7 @@ export default memo(function (props) {
         </div>
         <p className="text-center grey-lower">
           {isProfileScreen
-            ? ownerUID === currentUser.uid
+            ? ownerUID === currentUser?.uid
               ? "You don't currently have any video"
               : "This user has no content"
             : "No existing videos, be the first to create one!"}
@@ -133,7 +132,7 @@ export default memo(function (props) {
 
   return videos.map((video) => {
     if (video.active || typeof video.active === "undefined") {
-      return <PreviewVideo key={video.idVideo} views={3} {...video} />;
+      return <PreviewVideo key={video.idVideo} {...video} />;
     } else {
       return null;
     }

@@ -73,7 +73,6 @@ export default function FormVideoProvider(props) {
 
   useEffect(() => {
     setInputs((previousInputs) => {
-      console.log(previousInputs)
       previousInputs = [...previousInputs];
       Object.assign(previousInputs[0], {
         submits: {
@@ -84,8 +83,6 @@ export default function FormVideoProvider(props) {
       return previousInputs;
     });
   }, [add]);
-
-  console.log(inputs);
 
   return (
     <stateFormVideoContext.Provider value={stateFormVideoProvider}>

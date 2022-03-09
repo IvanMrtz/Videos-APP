@@ -1,63 +1,85 @@
-#Side-Menu{
-    display: flex;
-    align-items: center;
-    flex-direction: column;
-    height: 100%;
-    right: 0;
-    width: 200px;
-    background: var(--color-grey-background);
-    position: fixed;
-    font-size: var(--font-small);
-    direction: rtl;
-    z-index: 1;
+#Side-Menu {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  height: 100%;
+  right: 0;
+  width: 200px;
+  background: var(--color-grey-background);
+  position: fixed;
+  font-size: var(--font-small);
+  direction: rtl;
+  z-index: 1;
 }
 
-#Back-Container{
-    position: absolute;
-    left: 10px;
-    top: 10px;
-    color: var(--color-grey);
+#Back-Container {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  color: var(--color-grey);
 }
-#Back-Container:hover{
-    cursor: pointer;
-    color: var(--color-linked);
-}
-
-#Side-Menu-Principal-Info{
-    display: flex;
-    margin-top: 20px;
-    flex-direction: column;
-    align-items: center;
+#Back-Container:hover {
+  cursor: pointer;
+  color: var(--color-linked);
 }
 
-#Container-Items{
-    display: flex;
-    position: relative;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-evenly;
-    height: 100%;
-    width: 65%;
-    color: var(--color-grey) !important;
+#Side-Menu-Principal-Info {
+  display: flex;
+  margin-top: 20px;
+  flex-direction: column;
+  align-items: center;
 }
 
-.Side-Menu-Item{
-    display: flex;
-    justify-content: space-evenly;
-    width: 100%;
-    align-items: center;
+#Container-Items {
+  display: flex;
+  position: relative;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-evenly;
+  height: 100%;
+  width: 65%;
+  color: var(--color-grey) !important;
 }
 
-.Side-Menu-Item:hover{
-    cursor: pointer;
-    color: var(--color-linked);
+.Side-Menu-Item {
+  display: flex;
+  justify-content: space-evenly;
+  width: 100%;
+  align-items: center;
 }
 
-#Side-Menu-User-Name{
-    color: var(--color-linked);
+.Side-Menu-Item:hover {
+  cursor: pointer;
+  color: var(--color-linked);
 }
 
-.item-bottom{
-    position: absolute;
-    bottom: 50px;
+#Side-Menu-User-Name {
+  color: var(--color-linked);
+}
+
+.item-bottom {
+  position: absolute;
+  bottom: 50px;
+}
+
+.Friends-Popup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--color-grey-background);
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+}
+
+.Friends-Popup h2 {
+  margin-top: 20px;
+  color: var(--color-grey);
+}
+
+.Friends-Close {
+  position: absolute;
+  left: 10px;
+  top: 13px;
+  color: var(--color-linked);
 }

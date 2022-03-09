@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useHistory } from "react-router";
 import userContext from "../context/user-context";
 import useForm from "../hooks/useForm";
 import useUser from "../hooks/useUser";
@@ -23,6 +24,8 @@ import useFirestore from "../hooks/useFirestore";
 import { VideoProfileContainer } from "./VideoContainer";
 import firebase from "firebase";
 import { firestore } from "../firebase/config";
+import useFriend from "../hooks/useFriend";
+import reducerFriendRequests from "../reducers/reducerFriendRequests";
 
 export function AccountSettings(props) {
   const { submit, error } = useForm();
@@ -228,11 +231,30 @@ export { PublicDetails };
 
 export function UserDetails(props) {
   const { currentUser } = useContext(userContext);
-  const { displayName, email, profileCoverRef, profileInfoRef, ownerUID } =
-    props;
+  const {
+    displayName,
+    email,
+    photoURL,
+    profileCoverRef,
+    profileInfoRef,
+    ownerUID,
+  } = props;
   const profileDetailsRef = useRef();
   const { consume } = useUser(ownerUID);
   const { subscribers } = consume;
+  const {
+    isSendedFriendRequest,
+    isFriend,
+    friends,
+    friendRequests,
+    friendRequest,
+    removeFriend,
+  } = useFriend({ user: ownerUID });
+  const [friendRequestsData, dispatch] = useReducer(reducerFriendRequests, {
+    text: "Add Friend",
+    color: "var(--color-grey-lower)",
+    icon: <Icon icon="akar-icons:person-add" />,
+  });
   const [subscribeColor, setSubscribeColor] = useState(
     "var(--color-grey-lower)"
   );
@@ -241,7 +263,7 @@ export function UserDetails(props) {
     if (subscribers) {
       return subscribers.users.find((user) => user.userUID === currentUser.uid);
     }
-  }, [subscribers]);
+  }, [subscribers, currentUser]);
 
   useEffect(() => {
     if (subscribers) {
@@ -276,6 +298,16 @@ export function UserDetails(props) {
       }
     }
   }, [subscribers, currentUser]);
+
+  useEffect(() => {
+    if (friendRequests) {
+      if (isSendedFriendRequest()) {
+        dispatch({ type: "cancel" });
+      } else {
+        dispatch({ type: "add" });
+      }
+    }
+  }, [friendRequests]);
 
   useEffect(() => {
     const profileCover = profileCoverRef?.current;
@@ -320,13 +352,30 @@ export function UserDetails(props) {
               </div>
             </div>
             <div className="User-Follows">
-              <button
-                id="Icon-Button-Animation"
-                className="default-button default-button-animation"
-                style={{ background: "var(--color-grey-lower)" }}
-              >
-                {match ? <Icon icon="akar-icons:person-add" /> : "Add Friend"}
-              </button>
+              {!isFriend() ? (
+                <button
+                  id="Icon-Button-Animation"
+                  className="default-button default-button-animation"
+                  style={{ background: friendRequestsData.color }}
+                  onClick={() => friendRequest()}
+                >
+                  {match ? friendRequestsData.icon : friendRequestsData.text}
+                </button>
+              ) : (
+                <button
+                  id="Icon-Button-Animation"
+                  className="default-button default-button-animation"
+                  style={{ background: friendRequestsData.color }}
+                  onClick={() => {removeFriend()}}
+                >
+                  {match ? (
+                    <Icon icon="ant-design:user-delete-outlined" />
+                  ) : (
+                    "Remove friend"
+                  )}
+                </button>
+              )}
+
               <button
                 onClick={() => subscribe()}
                 className="default-button default-button-animation"
@@ -345,8 +394,10 @@ export function UserDetails(props) {
 export default function Profile(props) {
   const { uid } = props.match.params;
   const { currentUser } = useContext(userContext);
-  const { photoURL, displayName, email } = useUser(uid).consume;
+  const consume = useUser(uid).consume;
+  const { photoURL } = consume;
   const provide = useUser(uid).provide;
+  const history = useHistory();
   const profileCoverRef = useRef();
   const profileInfoRef = useRef();
   const profileDetailsRef = useRef();
@@ -356,11 +407,16 @@ export default function Profile(props) {
     <UserDetails
       profileCoverRef={profileCoverRef}
       profileInfoRef={profileInfoRef}
-      displayName={displayName}
-      email={email}
       ownerUID={uid}
+      {...consume}
     />
   );
+
+  useEffect(()=>{
+    if(consume){
+      if(!(Object.keys(consume).length > 1)) history.push("/empty");
+    }
+  }, [consume])
 
   return (
     <>

@@ -1,13 +1,16 @@
 import { useContext } from "react";
 import { withRouter } from "react-router-dom";
 import userContext from "../context/user-context";
+import useFriend from "../hooks/useFriend";
 import "../styles/InfoUserPanel.css";
 import Media from "./MediaQuery";
 import ProfileImage from "./ProfileImage";
 
 export default withRouter(function ({ history }) {
   const { userData, currentUser } = useContext(userContext);
-  const { displayName, friends, subscribers, email, photoURL } = userData;
+  const { displayName, subscribers, email, photoURL } = userData;
+  const { friends } = useFriend({user: currentUser.uid});
+
   return (
     <Media
       query="(min-width: 850px)"
@@ -59,7 +62,7 @@ export default withRouter(function ({ history }) {
                   </div>
                   <div className="Public-Info-Container">
                     <p className="very-small-2 grey">
-                      Friends: <span className="linked">{friends}</span>
+                      Friends: <span className="linked">{friends?.count}</span>
                     </p>
                     <p className="very-small-2 grey">
                       Subscribers:{" "}

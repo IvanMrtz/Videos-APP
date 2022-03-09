@@ -59,7 +59,7 @@ function useAuth() {
               .then(done)
               .catch(error);
 
-            refUser.collection("friends").add({});
+            refUser.collection("friend_requests").add({});
           })
           .catch(error);
       });

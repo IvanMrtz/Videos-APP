@@ -1,70 +1,15 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { firestore } from "../firebase/config";
 import firebase from "firebase/app";
-import concatDocs from "../utilities/ConcatDocs/concatDocs";
 import userContext from "../context/user-context";
+import { reject } from "lodash";
 
 export default function ({ idVideo, ownerVideoUID }) {
   const [messages, setMessages] = useState([]);
-  const [changes, setChanges] = useState(false);
   const { currentUser } = useContext(userContext);
-
-  const chatRef = firestore
-    .collection("users")
-    .doc(ownerVideoUID)
-    .collection("videos")
-    .doc(idVideo)
-    .collection("chat");
-
-  useEffect(() => {
-    const observer = {
-      next: (querySnapshot) => {
-        let promises = [];
-
-        querySnapshot.docs.map((docSnapshot) => {
-          promises.push(
-            new Promise((res, rej) => {
-              return chatRef
-                .doc(docSnapshot.id)
-                .collection("comments")
-                .orderBy("createdAt")
-                .limit(20)
-                .onSnapshot({
-                  next: (querySnapshot) => {
-                    const messages = querySnapshot.docs.map((docSnapshot) => {
-                      return Object.assign(docSnapshot.data(), {
-                        id: docSnapshot.id,
-                      });
-                    });
-
-                    console.log(messages);
-
-                    // Horrible
-                    if (promises === "finished") {
-                      setChanges((previous) => !previous);
-                    } else {
-                      res(messages);
-                    }
-                  },
-                });
-            })
-          );
-        });
-
-        Promise.all(promises).then((messages) => {
-          if (promises !== "finished") {
-            promises = "finished";
-            setMessages(concatDocs(messages));
-          }
-        });
-      },
-    };
-    const unsubSnapshot = chatRef.onSnapshot(observer);
-    return unsubSnapshot;
-  }, [changes]);
-
+  
   function editMessage(messageID, data) {
-    console.log(data)
+    console.log(data);
     firestore
       .collection("users")
       .doc(ownerVideoUID)
@@ -111,5 +56,5 @@ export default function ({ idVideo, ownerVideoUID }) {
     return Promise.resolve();
   }
 
-  return { messages, writeMessage, removeMessage, editMessage };
+  return { messages, writeMessage, removeMessage, editMessage, setMessages};
 }

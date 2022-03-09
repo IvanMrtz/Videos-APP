@@ -7,11 +7,10 @@ export default function ({ urlThumbnail, idVideo, onClick, userUID }) {
   const { getDownloadURL } = useStorage();
 
   useEffect(() => {
-    getDownloadURL(["thumbnails", userUID, idVideo]).then(url => {
+    getDownloadURL(["thumbnails", userUID, idVideo]).then((url) => {
       setSrc(url);
     });
   }, []);
-
   return (
     <div className="Thumbnail-Container" onClick={onClick}>
       {src && (
