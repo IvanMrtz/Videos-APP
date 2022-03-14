@@ -1,6 +1,6 @@
 import useFirestore from "../hooks/useFirestore";
 import React, { useContext, useEffect } from "react";
-import { useState } from "react";
+import { useState, memo } from "react";
 import InfoPanels from "./InfoPanels";
 import SideMenu from "./SideMenu";
 import Videos from "./VideoContainer";
@@ -17,7 +17,7 @@ export function AllVideos(props) {
   const { children, setVideos } = props;
   const [changes, setChanges] = useState(false);
   const { readAllVideos } = useFirestore();
-  
+
   useEffect(() => {
     const observer = {
       next: (querySnapshot) => {
@@ -48,7 +48,10 @@ export function AllVideos(props) {
         Promise.all(promises).then((videos) => {
           if (promises !== "finished") {
             promises = "finished";
-            setVideos(concatDocs(videos));
+            const joinedDocs = concatDocs(videos);
+            if(joinedDocs.length) {
+              setVideos(joinedDocs)
+            }
           }
         });
       },
@@ -62,13 +65,14 @@ export function AllVideos(props) {
   return children;
 }
 
-export function Main() {
+const Main = memo(function Main() {
   const { currentUser } = useContext(userContext);
   const [videos, setVideos] = useState(null);
   const [sideMenu, setSideMenu] = useState(false);
   const [mobile, setMobile] = useState(false);
   const [refPopup, setRefPopup] = useState();
   const [refMainContainer, setRefMainContainer] = useState();
+
   const videosContainer = (
     <AllVideos setVideos={setVideos}>
       <VideoMainContainer>
@@ -76,14 +80,13 @@ export function Main() {
       </VideoMainContainer>
     </AllVideos>
   );
-
   useEffect(() => {
     const node = refMainContainer;
 
     if (refPopup && node) {
       node.addEventListener("touchmove", (event) => {
         if (
-          Math.round(node.scrollTop) + 50 >=
+          Math.round(node.scrollTop) + 150 >=
           node.scrollHeight - Math.round(node.getBoundingClientRect().height)
         ) {
           refPopup.style.opacity = "0";
@@ -96,14 +99,14 @@ export function Main() {
 
   return (
     <>
-      {!currentUser.emailVerified ? (
+      {/* {!currentUser.emailVerified ? (
         <Popup
           ref={setRefPopup}
           message="Atention: You do not have verified email. Please check it out for a better experience."
           background="var(--color-grey-background-ligth)"
           color="var(--color-grey)"
         />
-      ) : null}
+      ) : null} */}
       {sideMenu ? <SideMenu setSideMenu={setSideMenu} /> : null}
 
       <div className="Main-Container">
@@ -153,7 +156,11 @@ export function Main() {
                       <Media
                         query="(min-width: 850px)"
                         render={(match) => {
-                          return <FriendContainer>{match ? <Friends /> : null}</FriendContainer>;
+                          return (
+                            <FriendContainer ref={setRefPopup}>
+                              {match ? <Friends /> : null}
+                            </FriendContainer>
+                          );
                         }}
                       />
                     </div>
@@ -166,4 +173,6 @@ export function Main() {
       </div>
     </>
   );
-}
+});
+
+export { Main };

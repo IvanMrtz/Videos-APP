@@ -14,7 +14,7 @@ import { motion } from "framer-motion";
 import { Icon } from "@iconify/react";
 import useMessage from "../hooks/useMessage";
 import Scroll from "./Scroll";
-import useUser from "../hooks/useUser";
+import {useUpdatedUser} from "../hooks/useUser";
 import useFirestore from "../hooks/useFirestore";
 import Media from "./MediaQuery";
 import { useHistory, useLocation, useParams } from "react-router-dom";
@@ -227,7 +227,7 @@ export default function () {
   const { userUID: ownerVideoUID } = state;
   const { id: idVideo } = useParams();
   const [src, setSrc] = useState();
-  const ownerData = useUser(ownerVideoUID);
+  const ownerData = useUpdatedUser(ownerVideoUID);
   const { displayName, subscribers, photoURL } = ownerData.consume;
   const { getDownloadURL } = useStorage();
   const { update, readSingleVideo } = useFirestore();

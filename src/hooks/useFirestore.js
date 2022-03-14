@@ -9,7 +9,6 @@ function useFirestore() {
   const { currentUser } = useContext(userContext);
   const { read: readStorage, getDownloadURL } = useStorage();
   // : if request.resource.contentType.matches('video/mp4') || request.resource.contentType.matches('image/jpg');
-
   const add = useCallback(
     (video, done = () => {}, error = () => {}) => {
       readStorage(["videos", currentUser.uid, video.idVideo])
@@ -111,6 +110,7 @@ function useFirestore() {
   const update = useCallback(
     (video, done = () => {}, error = () => {}) => {
       const { userUID = currentUser?.uid, idVideo } = video;
+        console.log(video)
       let toUpdateFirestore = {};
       let toUpdateStorage = {};
 

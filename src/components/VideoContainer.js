@@ -98,43 +98,57 @@ export function VideoMainContainer(props) {
   );
 }
 
-export default memo(function (props) {
-  const { videos, ownerUID } = props;
-  const { pathname } = useLocation();
-  const isProfileScreen = pathname.match(/profile/);
-  const { currentUser } = useContext(userContext);
-  const emptyContainerStyle = {
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "space-evenly",
-    height: isProfileScreen ? "100px" : "400px",
-    width: "100%",
-  };
+export default memo(
+  function (props) {
+    const { videos, ownerUID } = props;
+    const { pathname } = useLocation();
+    const isProfileScreen = pathname.match(/profile/);
+    const { currentUser } = useContext(userContext);
+    const emptyContainerStyle = {
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "space-evenly",
+      height: isProfileScreen ? "100px" : "400px",
+      width: "100%",
+    };
 
-  if (!videos?.length) {
-    return (
-      <div className="Empty-Container" style={emptyContainerStyle}>
-        <div className="d-flex justify-content-center">
-          {!isProfileScreen ? (
-            <img width="350" src="undraw_empty_xct9.svg" alt="" />
-          ) : null}
+    if (!videos?.length) {
+      return (
+        <div className="Empty-Container" style={emptyContainerStyle}>
+          <div className="d-flex justify-content-center">
+            {!isProfileScreen ? (
+              <img width="350" src="undraw_empty_xct9.svg" alt="" />
+            ) : null}
+          </div>
+          <p className="text-center grey-lower">
+            {isProfileScreen
+              ? ownerUID === currentUser?.uid
+                ? "You don't currently have any video"
+                : "This user has no content"
+              : "No existing videos, be the first to create one!"}
+          </p>
         </div>
-        <p className="text-center grey-lower">
-          {isProfileScreen
-            ? ownerUID === currentUser?.uid
-              ? "You don't currently have any video"
-              : "This user has no content"
-            : "No existing videos, be the first to create one!"}
-        </p>
-      </div>
-    );
-  }
-
-  return videos.map((video) => {
-    if (video.active || typeof video.active === "undefined") {
-      return <PreviewVideo key={video.idVideo} {...video} />;
-    } else {
-      return null;
+      );
     }
-  });
-});
+    console.log("Rendering single preview video...")
+
+    return videos.map((video) => {
+      if (video.active || typeof video.active === "undefined") {
+        return <PreviewVideo key={video.idVideo} {...video} />;
+      } else {
+        return null;
+      }
+    });
+  },
+  function areEqual(prevProps, nextProps) {
+    if (prevProps.videos && nextProps.videos) {
+      return prevProps.videos.some((prevVideo, idx) => {
+        const nextVideo = nextProps.videos[idx]
+        return (
+          prevVideo.likes.count !== nextVideo.likes.count ||
+          prevVideo.createdAt.seconds === nextVideo.createdAt.seconds
+        );
+      });
+    }
+  }
+);

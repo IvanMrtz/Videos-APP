@@ -1,18 +1,24 @@
+import { useCallback } from "react";
 import { auth, firestore } from "../../firebase/config";
-import useUser from "../../hooks/useUser";
+import { useUpdatedUser } from "../../hooks/useUser";
 
 function useAuth() {
-  const { provide } = useUser();
+  const { provide } = useUpdatedUser();
 
-  function login(data, done, error) {
-    auth
-      .signInWithEmailAndPassword(data.email, data.password)
-      .then(() => {
-        provide({ isOnline: true, userUID: auth.currentUser.uid });
-        done();
-      })
-      .catch(error);
-  }
+  const login = useCallback(
+    (data, done, error) => {
+      alert("login");
+
+      auth
+        .signInWithEmailAndPassword(data.email, data.password)
+        .then(() => {
+          provide(auth.currentUser.uid, { isOnline: true });
+          done();
+        })
+        .catch(error);
+    },
+    [auth]
+  );
 
   function updatePassword(password, _, error) {
     auth.currentUser.updatePassword(password).catch(error);
@@ -22,12 +28,14 @@ function useAuth() {
     auth.currentUser.updateEmail(email).catch(error);
   }
 
-  function logout() {
+  const logout = useCallback(() => {
     const userUID = auth.currentUser.uid;
-    auth.signOut().then(() => {
-      provide({ isOnline: false, userUID });
+    provide(userUID, { isOnline: false }).then(() => {
+      auth.signOut().catch((error) => {
+        provide(userUID, { isOnline: true });
+      });
     });
-  }
+  }, [auth]);
 
   function register(data, done, error) {
     if (data.repeatPassword !== data.password) {

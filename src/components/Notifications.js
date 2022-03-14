@@ -1,21 +1,36 @@
-import React, { useContext, useRef } from "react";
+import React, { useContext, useRef, useEffect, useState, useCallback } from "react";
 import userContext from "../context/user-context";
 import useFriend from "../hooks/useFriend";
 import Options, { Option } from "./Options";
 import { Icon } from "@iconify/react";
 import "../styles/Notifications.css";
 import ProfileImage from "./ProfileImage";
-import firebase from "firebase";
+import useUser from "../hooks/useUser";
+import { firestore } from "../firebase/config";
 
 export function Notification(props) {
   const {
+    userUID,
     photoURL,
     displayName,
-    userUID,
     acceptFriendRequest,
     rejectFriendRequest,
   } = props;
 
+  const onClickToAcceptFriendRequest = useCallback(
+    () => {
+      acceptFriendRequest(userUID)
+    },
+    [userUID],
+  )
+  
+  const onClickToRejectFriendRequest = useCallback(
+    () => {
+      rejectFriendRequest(userUID);
+    },
+    [userUID],
+  )
+  
   return (
     <>
       <Option>
@@ -24,28 +39,24 @@ export function Notification(props) {
             <ProfileImage
               width="45px"
               height="45px"
-              image={props.photoURL}
+              image={photoURL}
               alt="Profile Image"
             />
           </div>
           <div className="Notification-Body">
-            <p className="linked">{props.displayName}</p>
+            <p className="linked">{displayName}</p>
             <p className="Notification-Type">Friend Request</p>
           </div>
 
           <div className="Notification-Manage">
             <Icon
               color="var(--color-green)"
-              onClick={() =>
-                acceptFriendRequest({ photoURL, displayName, userUID })
-              }
+              onClick={onClickToAcceptFriendRequest}
               icon="akar-icons:check"
             />
             <Icon
               color="var(--color-red)"
-              onClick={() => {
-                rejectFriendRequest({ photoURL, displayName, userUID });
-              }}
+              onClick={onClickToRejectFriendRequest}
               icon="eva:close-outline"
             />
           </div>
@@ -63,6 +74,58 @@ export default function Notifications() {
       user: currentUser.uid,
     });
   const activator = useRef();
+  const [updatedFriendRequests, setUpdatedFriendRequests] = useState();
+  
+  useEffect(() => {
+    if (friendRequests?.users) {
+      let updated = [];
+
+      const unsubscribeUsers = firestore
+        .collection("users")
+        .onSnapshot((querySnapshot) => {
+          querySnapshot.docChanges().forEach((change) => {
+            const changeDocID = change.doc.id;
+            const changedData = change.doc.data();
+            if (change.type === "added") {
+              if (friendRequests.users.includes(changeDocID)) {
+                updated.push({ ...changedData, userUID: changeDocID });
+              }
+            }
+
+            if (change.type === "modified") {
+              if (friendRequests.users.includes(changeDocID)) {
+                console.log(changedData);
+                updated = updated.map((friendRequest) => {
+                  if (friendRequest.userUID === changeDocID) {
+                    return { ...changedData, userUID: changeDocID };
+                  }
+                  return friendRequest;
+                });
+              }
+            }
+
+            if (change.type === "removed") {
+              if (friendRequests.users.includes(changeDocID)) {
+                console.log(changedData);
+                updated = updated.filter((friendRequest) => {
+                  return friendRequest.userUID !== changeDocID;
+                });
+                firestore
+                  .collection("users")
+                  .doc(currentUser.uid)
+                  .collection("friendRequests")
+                  .doc(changeDocID)
+                  .delete();
+              }
+            }
+          });
+
+          setUpdatedFriendRequests({ count: updated.length, users: updated });
+        });
+
+      return unsubscribeUsers;
+    }
+  }, [friendRequests]);
 
   return (
     <div className="Notifications">
@@ -73,7 +136,7 @@ export default function Notifications() {
         ref={activator}
         className="Notification-Icon"
       />
-      {friendRequests.users && friendRequests.count ? (
+      {updatedFriendRequests?.users && updatedFriendRequests?.count >=0 ? (
         <Options
           activator={activator}
           style={{
@@ -87,18 +150,20 @@ export default function Notifications() {
         >
           <div className="Notification-Title">
             <p className="grey">Notifications</p>
-            <p className="linked">{friendRequests.count}</p>
+            <p className="linked">{updatedFriendRequests.count}</p>
           </div>
           <hr className="line-semi-completed" />
-          {friendRequests.users.length ? (
-            friendRequests.users.map((user) => (
-              <Notification
-                acceptFriendRequest={acceptFriendRequest}
-                rejectFriendRequest={rejectFriendRequest}
-                key={user.createdAt.toDate()}
-                {...user}
-              />
-            ))
+          {updatedFriendRequests?.users?.length ? (
+            updatedFriendRequests.users.map((user) => {
+              return (
+                <Notification
+                  acceptFriendRequest={acceptFriendRequest}
+                  rejectFriendRequest={rejectFriendRequest}
+                  key={user.userUID}
+                  {...user}
+                />
+              );
+            })
           ) : (
             <div className="Notification-Nothing">
               <img width="90%" height="50%" src="undraw_void_3ggu.svg"></img>

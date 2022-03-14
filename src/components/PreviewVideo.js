@@ -58,6 +58,7 @@ export default memo(function PreviewVideo(props) {
                           input.data.external = {
                             idVideo,
                             setData,
+                            userUID: currentUser.uid,
                           };
                         }
 

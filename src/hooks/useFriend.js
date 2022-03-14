@@ -2,11 +2,11 @@ import { useEffect, useState, useContext, useCallback } from "react";
 import userContext from "../context/user-context";
 import { firestore } from "../firebase/config";
 import firebase from "firebase";
-import useUser from "./useUser";
+import { useUpdatedUser } from "./useUser";
 
 export default function ({ user }) {
   const { currentUser } = useContext(userContext);
-  const { consume } = useUser(currentUser?.uid);
+  const { consume } = useUpdatedUser(currentUser?.uid);
   const { photoURL, displayName } = consume;
   const [friends, setFriends] = useState();
   const [friendRequests, setFriendRequests] = useState({});
@@ -14,40 +14,77 @@ export default function ({ user }) {
   const isSendedFriendRequest = useCallback(() => {
     if (friendRequests.users) {
       return friendRequests.users.find(
-        (user) => user.userUID === currentUser.uid
+        (userUID) => userUID === currentUser.uid
       );
     }
   }, [friendRequests, currentUser]);
 
+  useEffect(() => {
+    if (user) {
+      const refUser = firestore.collection("users").doc(user);
+      const refFriendRequests = refUser.collection("friendRequests");
+      const unsubSnapshotFriendRequests = refFriendRequests.onSnapshot(
+        (querySnapshot) => {
+          setFriendRequests({
+            count: String(querySnapshot.size),
+            users: querySnapshot.docs.map((doc) => doc.id),
+          });
+        }
+      );
+
+      return () => {
+        unsubSnapshotFriendRequests();
+      };
+    }
+  }, [user]);
+  useEffect(() => {
+    if (user) {
+      const refUser = firestore.collection("users").doc(user);
+      const refFriends = refUser.collection("friends");
+      refFriends
+        .get()
+        .then((res) => res.docs.map((friend) => console.log(friend.data())));
+      const unsubSnapshotFriends = refFriends.onSnapshot((querySnapshot) => {
+        const users = querySnapshot.docs
+          .map((doc) => {
+            return doc.id;
+          })
+          .filter((el) => el);
+        setFriends({
+          count: users.length,
+          users,
+        });
+      });
+
+      return () => {
+        unsubSnapshotFriends();
+      };
+    }
+  }, [user]);
+
   const acceptFriendRequest = useCallback(
-    (requestUser) => {
+    (requestUserUID) => {
       if (currentUser) {
         if (currentUser.emailVerified) {
           const refUser = firestore.collection("users").doc(currentUser.uid);
           const refFriends = refUser.collection("friends");
           const refFriendRequests = refUser
             .collection("friendRequests")
-            .doc(requestUser.userUID);
-
-          console.log(currentUser);
+            .doc(requestUserUID);
 
           const refCreatorUser = firestore
             .collection("users")
-            .doc(requestUser.userUID);
+            .doc(requestUserUID);
           const refCreatorFriends = refCreatorUser.collection("friends");
 
           refFriendRequests.delete().then(() => {
-            refFriends
-              .doc(requestUser.userUID)
-              .set(Object.assign(requestUser, { id: String(Date.now()) }));
-            refCreatorFriends
-              .doc(user)
-              .set({ displayName, photoURL, id: String(Date.now()) });
+            refFriends.doc(requestUserUID).set({ id: String(Date.now()) });
+            refCreatorFriends.doc(user).set({ id: String(Date.now()) });
           });
         }
       }
     },
-    [currentUser, displayName, photoURL]
+    [currentUser]
   );
 
   const rejectFriendRequest = useCallback(
@@ -55,11 +92,11 @@ export default function ({ user }) {
       if (currentUser) {
         if (currentUser.emailVerified) {
           const refUser = firestore.collection("users").doc(currentUser.uid);
-          const refFriendRequests = refUser
-            .collection("friendRequests")
-            .doc(requestUser.userUID);
 
-          refFriendRequests.delete();
+          refUser
+            .collection("friendRequests")
+            .doc(requestUser)
+            .delete();
         }
       }
     },
@@ -81,8 +118,6 @@ export default function ({ user }) {
           if (!isSendedFriendRequest()) {
             friendsRequestsRef.set({
               createdAt: timestamp,
-              displayName,
-              photoURL,
             });
           } else {
             friendsRequestsRef.delete();
@@ -91,50 +126,6 @@ export default function ({ user }) {
       }
     }
   }, [friendRequests, currentUser, displayName, photoURL]);
-
-  useEffect(() => {
-    if (user) {
-      const refUser = firestore.collection("users").doc(user);
-      const refFriendRequests = refUser.collection("friendRequests");
-      const unsubSnapshotFriendRequests = refFriendRequests.onSnapshot(
-        (querySnapshot) => {
-          setFriendRequests({
-            count: String(querySnapshot.size),
-            users: querySnapshot.docs.map((doc) =>
-              Object.assign(doc.data(), { userUID: doc.id })
-            ),
-          });
-        }
-      );
-
-      return () => {
-        unsubSnapshotFriendRequests();
-      };
-    }
-  }, [user]);
-
-  useEffect(() => {
-    if (user) {
-      const refUser = firestore.collection("users").doc(user);
-      const refFriends = refUser.collection("friends");
-
-      const unsubSnapshotFriends = refFriends.onSnapshot((querySnapshot) => {
-        const users = querySnapshot.docs
-          .map((doc) => {
-            Object.assign(doc.data(), { userUID: doc.id });
-          })
-          .filter((el) => el);
-        setFriends({
-          count: users.length,
-          users,
-        });
-      });
-
-      return () => {
-        unsubSnapshotFriends();
-      };
-    }
-  }, [user]);
 
   const removeFriend = useCallback(() => {
     if (friends && user) {
@@ -151,13 +142,15 @@ export default function ({ user }) {
 
   const isFriend = useCallback(() => {
     if (friends) {
-      return friends.users.find((user) => user.userUID === currentUser.uid);
+      return friends.users.find((userUID) => userUID === currentUser.uid);
     }
   }, [friends, currentUser]);
 
   return {
     friends,
+    setFriends,
     friendRequests,
+    setFriendRequests,
     isFriend,
     friendRequest,
     isSendedFriendRequest,

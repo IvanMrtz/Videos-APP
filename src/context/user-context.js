@@ -2,7 +2,7 @@ import React from "react";
 import { useEffect, useState } from "react";
 import { useHistory } from "react-router-dom";
 import { auth } from "../firebase/config";
-import useUser from "../hooks/useUser";
+import {useUpdatedUser} from "../hooks/useUser";
 
 const userContext = React.createContext();
 
@@ -11,7 +11,7 @@ export default userContext;
 export const UserProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const history = useHistory();
-  const { consume: userData } = useUser(currentUser);
+  const { consume: userData } = useUpdatedUser(currentUser);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -22,6 +22,7 @@ export const UserProvider = ({ children }) => {
         if (pathName == "/auth") {
           history.push("/");
         }
+        console.log(userData)
       } else {
         setCurrentUser(null);
         if (pathName != "/auth") {

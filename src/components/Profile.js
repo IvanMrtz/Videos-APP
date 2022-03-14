@@ -11,7 +11,7 @@ import {
 import { useHistory } from "react-router";
 import userContext from "../context/user-context";
 import useForm from "../hooks/useForm";
-import useUser from "../hooks/useUser";
+import {useUpdatedUser} from "../hooks/useUser";
 import reducerFormAccountSettings from "../reducers/reducerFormAccountSettings";
 import Circle from "./Circle";
 import Videos from "./VideoContainer";
@@ -209,7 +209,7 @@ export function OwnerVideos(props) {
 
 const PublicDetails = forwardRef(function (props, ref) {
   const { uid } = props;
-  const { subscribers, age } = useUser(uid).consume;
+  const { subscribers, age } = useUpdatedUser(uid).consume;
 
   return (
     <div ref={ref} className="Public-Details">
@@ -240,7 +240,7 @@ export function UserDetails(props) {
     ownerUID,
   } = props;
   const profileDetailsRef = useRef();
-  const { consume } = useUser(ownerUID);
+  const { consume } = useUpdatedUser(ownerUID);
   const { subscribers } = consume;
   const {
     isSendedFriendRequest,
@@ -394,9 +394,9 @@ export function UserDetails(props) {
 export default function Profile(props) {
   const { uid } = props.match.params;
   const { currentUser } = useContext(userContext);
-  const consume = useUser(uid).consume;
+  const consume = useUpdatedUser(uid).consume;
   const { photoURL } = consume;
-  const provide = useUser(uid).provide;
+  const provide = useUpdatedUser(uid).provide;
   const history = useHistory();
   const profileCoverRef = useRef();
   const profileInfoRef = useRef();
